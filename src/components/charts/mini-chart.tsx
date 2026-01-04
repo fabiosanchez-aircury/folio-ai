@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createChart, ColorType, IChartApi } from "lightweight-charts";
+import { createChart, ColorType, IChartApi, AreaSeries, Time } from "lightweight-charts";
 
 interface MiniChartProps {
   data: { time: string; value: number }[];
@@ -64,7 +64,7 @@ export function MiniChart({ data, color = "blue", height = 60 }: MiniChartProps)
     chartRef.current = chart;
 
     const colorSet = colors[color];
-    const series = chart.addAreaSeries({
+    const series = chart.addSeries(AreaSeries, {
       topColor: colorSet.areaTop,
       bottomColor: colorSet.areaBottom,
       lineColor: colorSet.line,
@@ -73,7 +73,7 @@ export function MiniChart({ data, color = "blue", height = 60 }: MiniChartProps)
 
     series.setData(
       data.map((d) => ({
-        time: d.time as unknown as import("lightweight-charts").Time,
+        time: d.time as Time,
         value: d.value,
       }))
     );
@@ -96,4 +96,3 @@ export function MiniChart({ data, color = "blue", height = 60 }: MiniChartProps)
 
   return <div ref={containerRef} className="w-full" />;
 }
-

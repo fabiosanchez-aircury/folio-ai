@@ -9,6 +9,9 @@ import {
   CandlestickData,
   LineData,
   Time,
+  CandlestickSeries,
+  LineSeries,
+  AreaSeries,
 } from "lightweight-charts";
 
 export type ChartType = "candlestick" | "line" | "area";
@@ -92,11 +95,11 @@ export function PriceChart({
 
     chartRef.current = chart;
 
-    // Create series based on type
+    // Create series based on type (v5 API)
     let series: ISeriesApi<"Candlestick" | "Line" | "Area">;
 
     if (type === "candlestick") {
-      series = chart.addCandlestickSeries({
+      series = chart.addSeries(CandlestickSeries, {
         upColor: chartColors.upColor,
         downColor: chartColors.downColor,
         borderDownColor: chartColors.downColor,
@@ -115,7 +118,7 @@ export function PriceChart({
 
       series.setData(candleData);
     } else if (type === "line") {
-      series = chart.addLineSeries({
+      series = chart.addSeries(LineSeries, {
         color: chartColors.lineColor,
         lineWidth: 2,
       });
@@ -127,7 +130,7 @@ export function PriceChart({
 
       series.setData(lineData);
     } else {
-      series = chart.addAreaSeries({
+      series = chart.addSeries(AreaSeries, {
         topColor: chartColors.areaTopColor,
         bottomColor: chartColors.areaBottomColor,
         lineColor: chartColors.lineColor,
@@ -153,12 +156,12 @@ export function PriceChart({
     // Subscribe to crosshair move
     chart.subscribeCrosshairMove((param) => {
       if (param.time && param.seriesData.size > 0) {
-        const data = param.seriesData.get(series);
-        if (data) {
-          if ("close" in data) {
-            setCurrentPrice(data.close);
-          } else if ("value" in data) {
-            setCurrentPrice(data.value);
+        const seriesData = param.seriesData.get(series);
+        if (seriesData) {
+          if ("close" in seriesData) {
+            setCurrentPrice(seriesData.close);
+          } else if ("value" in seriesData) {
+            setCurrentPrice(seriesData.value);
           }
         }
       } else if (data.length > 0) {
@@ -199,4 +202,3 @@ export function PriceChart({
     </div>
   );
 }
-
