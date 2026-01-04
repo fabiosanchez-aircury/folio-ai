@@ -47,6 +47,7 @@ const RAW_RUNTIME_STATE =
           ["eslint", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:9.39.2"],\
           ["eslint-config-next", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:16.1.1"],\
           ["ioredis", "npm:5.8.2"],\
+          ["lightweight-charts", "npm:5.1.0"],\
           ["lucide-react", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:0.562.0"],\
           ["next", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:14.2.35"],\
           ["postcss", "npm:8.5.6"],\
@@ -2025,6 +2026,7 @@ const RAW_RUNTIME_STATE =
           ["eslint", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:9.39.2"],\
           ["eslint-config-next", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:16.1.1"],\
           ["ioredis", "npm:5.8.2"],\
+          ["lightweight-charts", "npm:5.1.0"],\
           ["lucide-react", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:0.562.0"],\
           ["next", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:14.2.35"],\
           ["postcss", "npm:8.5.6"],\
@@ -3557,6 +3559,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["fancy-canvas", [\
+      ["npm:2.1.0", {\
+        "packageLocation": "../root/.yarn/berry/cache/fancy-canvas-npm-2.1.0-22df58fc44-10c0.zip/node_modules/fancy-canvas/",\
+        "packageDependencies": [\
+          ["fancy-canvas", "npm:2.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["fast-check", [\
       ["npm:3.23.2", {\
         "packageLocation": "../root/.yarn/berry/cache/fast-check-npm-3.23.2-63dd857472-10c0.zip/node_modules/fast-check/",\
@@ -4707,6 +4718,16 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/unplugged/lightningcss-win32-x64-msvc-npm-1.30.2-868de13b8a/node_modules/lightningcss-win32-x64-msvc/",\
         "packageDependencies": [\
           ["lightningcss-win32-x64-msvc", "npm:1.30.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["lightweight-charts", [\
+      ["npm:5.1.0", {\
+        "packageLocation": "../root/.yarn/berry/cache/lightweight-charts-npm-5.1.0-e01d55d93b-10c0.zip/node_modules/lightweight-charts/",\
+        "packageDependencies": [\
+          ["fancy-canvas", "npm:2.1.0"],\
+          ["lightweight-charts", "npm:5.1.0"]\
         ],\
         "linkType": "HARD"\
       }]\

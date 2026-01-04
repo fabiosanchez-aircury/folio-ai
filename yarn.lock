@@ -1484,6 +1484,7 @@ __metadata:
     eslint: "npm:^9.39.2"
     eslint-config-next: "npm:^16.1.1"
     ioredis: "npm:^5.8.2"
+    lightweight-charts: "npm:^5.1.0"
     lucide-react: "npm:^0.562.0"
     next: "npm:14"
     postcss: "npm:^8.5.6"
@@ -2707,6 +2708,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fancy-canvas@npm:2.1.0":
+  version: 2.1.0
+  resolution: "fancy-canvas@npm:2.1.0"
+  checksum: 10c0/2b863b1548214ac793a5104154be389dbca6847c53c8bda88e4309f14bcdb498f4da21e368b573f3ab5f458d3b47c3f0ef731a7b90c8264b23c1cf0bfc9d1da3
+  languageName: node
+  linkType: hard
+
 "fast-check@npm:^3.23.1":
   version: 3.23.2
   resolution: "fast-check@npm:3.23.2"
@@ -3724,6 +3732,15 @@ __metadata:
     lightningcss-win32-x64-msvc:
       optional: true
   checksum: 10c0/5c0c73a33946dab65908d5cd1325df4efa290efb77f940b60f40448b5ab9a87d3ea665ef9bcf00df4209705050ecf2f7ecc649f44d6dfa5905bb50f15717e78d
+  languageName: node
+  linkType: hard
+
+"lightweight-charts@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "lightweight-charts@npm:5.1.0"
+  dependencies:
+    fancy-canvas: "npm:2.1.0"
+  checksum: 10c0/0f9f2de4ecae7a4d627f75c9467d8d55feca844ef4e8ecbdc50aeb96545ed6b1413f1606a0b14df95147f5000af0c425f24e743ac804033b0978cf442fb0244f
   languageName: node
   linkType: hard
 
