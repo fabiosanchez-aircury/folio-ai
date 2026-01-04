@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, TrendingUp } from "lucide-react";
+import { AuthService } from "@/services";
+import { AxiosError } from "axios";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -37,18 +39,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        return;
-      }
+      await AuthService.register({ name, email, password });
 
       // Auto sign in after registration
       const result = await signIn("credentials", {
@@ -63,8 +54,9 @@ export default function RegisterPage() {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch {
-      setError("An error occurred. Please try again.");
+    } catch (err) {
+      const axiosError = err as AxiosError<{ error?: string }>;
+      setError(axiosError.response?.data?.error || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

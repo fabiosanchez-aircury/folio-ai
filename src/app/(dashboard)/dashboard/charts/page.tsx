@@ -4,19 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PriceChart, ChartType, ChartDataPoint } from "@/components/charts";
+import { PriceChart, ChartType } from "@/components/charts";
+import { ChartService, TimeRange, ChartTicker, ChartDataPoint } from "@/services";
 import { Search, CandlestickChart, LineChartIcon, AreaChart, Loader2, RefreshCw } from "lucide-react";
-
-interface ChartApiResponse {
-  symbol: string;
-  type: "CRYPTO" | "STOCK";
-  data: ChartDataPoint[];
-  ticker: {
-    price: number;
-    change: number;
-    changePercent: number;
-  };
-}
+import { AxiosError } from "axios";
 
 const chartTypes: { type: ChartType; icon: React.ReactNode; label: string }[] = [
   { type: "candlestick", icon: <CandlestickChart className="h-4 w-4" />, label: "Candles" },
@@ -24,7 +15,7 @@ const chartTypes: { type: ChartType; icon: React.ReactNode; label: string }[] = 
   { type: "area", icon: <AreaChart className="h-4 w-4" />, label: "Area" },
 ];
 
-const timeRanges = ["1D", "1W", "1M", "3M", "1Y", "ALL"];
+const timeRanges: TimeRange[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"];
 
 const popularSymbols = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "AVAX"];
 
@@ -32,9 +23,9 @@ export default function ChartsPage() {
   const [symbol, setSymbol] = useState("BTC");
   const [searchInput, setSearchInput] = useState("");
   const [chartType, setChartType] = useState<ChartType>("candlestick");
-  const [timeRange, setTimeRange] = useState("3M");
+  const [timeRange, setTimeRange] = useState<TimeRange>("3M");
   const [data, setData] = useState<ChartDataPoint[]>([]);
-  const [ticker, setTicker] = useState<ChartApiResponse["ticker"] | null>(null);
+  const [ticker, setTicker] = useState<ChartTicker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -44,21 +35,13 @@ export default function ChartsPage() {
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/charts?symbol=${symbol}&timeRange=${timeRange}`
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch data");
-      }
-
-      const result: ChartApiResponse = await response.json();
+      const result = await ChartService.getChartData(symbol, timeRange);
       setData(result.data);
       setTicker(result.ticker);
       setLastUpdate(new Date());
     } catch (err) {
-      setError((err as Error).message);
+      const axiosError = err as AxiosError<{ message?: string }>;
+      setError(axiosError.response?.data?.message || axiosError.message || "Failed to fetch data");
       setData([]);
       setTicker(null);
     } finally {
