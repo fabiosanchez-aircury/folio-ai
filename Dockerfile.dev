@@ -1,0 +1,17 @@
+# Development Dockerfile with hot reload
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies for node-gyp, git, and openssl
+RUN apk add --no-cache libc6-compat git openssl
+
+# Enable corepack for yarn
+RUN corepack enable && corepack prepare yarn@stable --activate
+
+# Expose port
+EXPOSE 3000
+
+# Keep container running and use mounted volumes
+CMD ["sh", "-c", "yarn install && yarn db:generate && yarn dev"]
+
