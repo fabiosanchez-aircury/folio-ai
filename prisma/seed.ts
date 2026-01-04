@@ -1,19 +1,34 @@
 import { PrismaClient } from "@prisma/client";
-import { hash } from "bcryptjs";
+import { scrypt, randomBytes } from "crypto";
+import { promisify } from "util";
 
 const prisma = new PrismaClient();
+const scryptAsync = promisify(scrypt);
+
+// Better Auth compatible password hash function
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${salt}:${derivedKey.toString("hex")}`;
+}
 
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // Create test users
-  const password = await hash("password123", 12);
+  // First, clean existing data
+  await prisma.asset.deleteMany();
+  await prisma.portfolio.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.user.deleteMany();
+
+  console.log("🧹 Cleaned existing data");
+
+  const password = await hashPassword("password123");
 
   // User 1: Crypto focused investor
-  const user1 = await prisma.user.upsert({
-    where: { email: "crypto@test.com" },
-    update: {},
-    create: {
+  const user1 = await prisma.user.create({
+    data: {
       id: "user-crypto-001",
       email: "crypto@test.com",
       name: "Crypto Trader",
@@ -30,10 +45,8 @@ async function main() {
   });
 
   // User 2: Stock focused investor
-  const user2 = await prisma.user.upsert({
-    where: { email: "stocks@test.com" },
-    update: {},
-    create: {
+  const user2 = await prisma.user.create({
+    data: {
       id: "user-stocks-001",
       email: "stocks@test.com",
       name: "Stock Investor",
@@ -50,10 +63,8 @@ async function main() {
   });
 
   // User 3: Mixed portfolio
-  const user3 = await prisma.user.upsert({
-    where: { email: "demo@test.com" },
-    update: {},
-    create: {
+  const user3 = await prisma.user.create({
+    data: {
       id: "user-demo-001",
       email: "demo@test.com",
       name: "Demo User",
@@ -72,10 +83,8 @@ async function main() {
   console.log("✅ Users created");
 
   // Create portfolios and assets for User 1 (Crypto)
-  const cryptoPortfolio = await prisma.portfolio.upsert({
-    where: { id: "portfolio-crypto-001" },
-    update: {},
-    create: {
+  await prisma.portfolio.create({
+    data: {
       id: "portfolio-crypto-001",
       name: "Crypto Holdings",
       description: "Long-term crypto investments",
@@ -116,10 +125,8 @@ async function main() {
   });
 
   // Create portfolios and assets for User 2 (Stocks)
-  const stocksPortfolio = await prisma.portfolio.upsert({
-    where: { id: "portfolio-stocks-001" },
-    update: {},
-    create: {
+  await prisma.portfolio.create({
+    data: {
       id: "portfolio-stocks-001",
       name: "Tech Stocks",
       description: "Technology sector investments",
@@ -166,10 +173,8 @@ async function main() {
     },
   });
 
-  const dividendPortfolio = await prisma.portfolio.upsert({
-    where: { id: "portfolio-dividend-001" },
-    update: {},
-    create: {
+  await prisma.portfolio.create({
+    data: {
       id: "portfolio-dividend-001",
       name: "Dividend Portfolio",
       description: "Stable dividend stocks",
@@ -196,10 +201,8 @@ async function main() {
   });
 
   // Create portfolios and assets for User 3 (Mixed - Demo)
-  const mixedPortfolio = await prisma.portfolio.upsert({
-    where: { id: "portfolio-mixed-001" },
-    update: {},
-    create: {
+  await prisma.portfolio.create({
+    data: {
       id: "portfolio-mixed-001",
       name: "My Portfolio",
       description: "Mixed crypto and stocks",
@@ -239,10 +242,8 @@ async function main() {
     },
   });
 
-  const altcoinPortfolio = await prisma.portfolio.upsert({
-    where: { id: "portfolio-altcoin-001" },
-    update: {},
-    create: {
+  await prisma.portfolio.create({
+    data: {
       id: "portfolio-altcoin-001",
       name: "Altcoins",
       description: "High risk altcoin bets",
@@ -295,4 +296,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
