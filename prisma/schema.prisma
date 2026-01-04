@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  password      String
+  name          String?
+  image         String?
+  portfolios    Portfolio[]
+  apiKeys       ApiKey[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Portfolio {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assets      Asset[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Asset {
+  id          String    @id @default(cuid())
+  symbol      String
+  name        String?
+  type        AssetType
+  quantity    Decimal   @db.Decimal(18, 8)
+  avgPrice    Decimal   @db.Decimal(18, 8)
+  portfolioId String
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([portfolioId, symbol])
+  @@index([portfolioId])
+  @@index([symbol])
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  platform  Platform
+  apiKey    String
+  apiSecret String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastSync  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, platform])
+  @@index([userId])
+}
+
+model NewsCache {
+  id          String   @id @default(cuid())
+  symbol      String
+  articles    Json
+  fetchedAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  @@index([symbol])
+  @@index([expiresAt])
+}
+
+model PriceCache {
+  id        String   @id @default(cuid())
+  symbol    String   @unique
+  price     Decimal  @db.Decimal(18, 8)
+  change24h Decimal  @db.Decimal(18, 8)
+  data      Json?
+  updatedAt DateTime @updatedAt
+
+  @@index([symbol])
+}
+
+enum AssetType {
+  CRYPTO
+  STOCK
+}
+
+enum Platform {
+  BINANCE
+}
+
