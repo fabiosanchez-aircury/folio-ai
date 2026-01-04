@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BinanceConnect } from "@/components/settings/binance-connect";
@@ -18,11 +17,9 @@ async function getApiKeys(userId: string) {
 }
 
 export default async function SettingsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await auth();
 
-  if (!session) return null;
+  if (!session?.user) return null;
 
   const apiKeys = await getApiKeys(session.user.id);
   const binanceKey = apiKeys.find((k) => k.platform === "BINANCE");

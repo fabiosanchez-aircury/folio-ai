@@ -2,15 +2,12 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getBinanceBalances, getBinancePrices } from "@/lib/api/binance";
 
 async function getSession() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session) throw new Error("Unauthorized");
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
   return session;
 }
 

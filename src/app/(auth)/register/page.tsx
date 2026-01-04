@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,14 +37,28 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const result = await authClient.signUp.email({
-        email,
-        password,
-        name,
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       });
 
-      if (result.error) {
-        setError(result.error.message || "Registration failed");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Registration failed");
+        return;
+      }
+
+      // Auto sign in after registration
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Account created but failed to sign in. Please try logging in.");
       } else {
         router.push("/dashboard");
         router.refresh();
@@ -61,10 +75,7 @@ export default function RegisterPage() {
     setIsGoogleLoading(true);
 
     try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/dashboard",
-      });
+      await signIn("google", { callbackUrl: "/dashboard" });
     } catch {
       setError("Failed to sign in with Google");
       setIsGoogleLoading(false);

@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { PortfolioList } from "@/components/portfolio/portfolio-list";
 import { CreatePortfolioButton } from "@/components/portfolio/create-portfolio-button";
@@ -15,11 +14,9 @@ async function getPortfolios(userId: string) {
 }
 
 export default async function PortfolioPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await auth();
 
-  if (!session) return null;
+  if (!session?.user) return null;
 
   const portfolios = await getPortfolios(session.user.id);
 

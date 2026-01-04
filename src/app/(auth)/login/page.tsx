@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,14 +24,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await authClient.signIn.email({
+      const result = await signIn("credentials", {
         email,
         password,
+        redirect: false,
       });
 
-      if (result.error) {
-        setError(result.error.message || "Invalid credentials");
-        console.log(result.error);
+      if (result?.error) {
+        setError("Invalid email or password");
       } else {
         router.push("/dashboard");
         router.refresh();
@@ -48,10 +48,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
 
     try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/dashboard",
-      });
+      await signIn("google", { callbackUrl: "/dashboard" });
     } catch {
       setError("Failed to sign in with Google");
       setIsGoogleLoading(false);

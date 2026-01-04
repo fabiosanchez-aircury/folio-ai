@@ -1,14 +1,11 @@
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { chatWithAI, PortfolioContext } from "@/lib/api/gemini";
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await auth();
 
-  if (!session) {
+  if (!session?.user) {
     return new Response("Unauthorized", { status: 401 });
   }
 

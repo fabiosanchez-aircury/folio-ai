@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { NewsContent } from "@/components/news/news-content";
 
@@ -27,11 +26,9 @@ async function getUserSymbols(userId: string) {
 }
 
 export default async function NewsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await auth();
 
-  if (!session) return null;
+  if (!session?.user) return null;
 
   const userSymbols = await getUserSymbols(session.user.id);
 

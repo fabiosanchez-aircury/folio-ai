@@ -1,7 +1,6 @@
 "use client";
 
-import { signOut } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu } from "lucide-react";
@@ -9,19 +8,15 @@ import { LogOut, Menu } from "lucide-react";
 interface HeaderProps {
   user: {
     id: string;
-    name: string | null;
-    email: string;
+    name?: string | null;
+    email?: string | null;
     image?: string | null;
   };
 }
 
 export function Header({ user }: HeaderProps) {
-  const router = useRouter();
-
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/login");
-    router.refresh();
+    await signOut({ callbackUrl: "/login" });
   };
 
   return (
@@ -42,8 +37,8 @@ export function Header({ user }: HeaderProps) {
           <div className="hidden sm:flex sm:items-center sm:gap-x-3">
             <Avatar
               src={user.image}
-              alt={user.name || user.email}
-              fallback={user.name?.charAt(0) || user.email.charAt(0)}
+              alt={user.name || user.email || "User"}
+              fallback={user.name?.charAt(0) || user.email?.charAt(0) || "U"}
               className="h-8 w-8"
             />
             <div className="text-sm">
@@ -66,4 +61,3 @@ export function Header({ user }: HeaderProps) {
     </header>
   );
 }
-

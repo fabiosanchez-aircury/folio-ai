@@ -1,173 +1,79 @@
 import { PrismaClient } from "@prisma/client";
-import { scrypt, randomBytes } from "crypto";
-import { promisify } from "util";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
-const scryptAsync = promisify(scrypt);
-
-// Better Auth compatible password hash function
-async function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString("hex");
-  const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${salt}:${derivedKey.toString("hex")}`;
-}
 
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // First, clean existing data
+  // Clean existing data
   await prisma.asset.deleteMany();
   await prisma.portfolio.deleteMany();
   await prisma.session.deleteMany();
   await prisma.account.deleteMany();
+  await prisma.verificationToken.deleteMany();
   await prisma.user.deleteMany();
-
   console.log("🧹 Cleaned existing data");
 
-  const password = await hashPassword("password123");
+  // Hash password
+  const hashedPassword = await bcrypt.hash("password123", 12);
 
-  // User 1: Crypto focused investor
-  const user1 = await prisma.user.create({
+  // Create users
+  const cryptoUser = await prisma.user.create({
     data: {
-      id: "user-crypto-001",
       email: "crypto@test.com",
       name: "Crypto Trader",
-      emailVerified: true,
-      accounts: {
-        create: {
-          id: "account-crypto-001",
-          accountId: "crypto@test.com",
-          providerId: "credential",
-          password,
-        },
-      },
+      password: hashedPassword,
     },
   });
 
-  // User 2: Stock focused investor
-  const user2 = await prisma.user.create({
+  const stocksUser = await prisma.user.create({
     data: {
-      id: "user-stocks-001",
       email: "stocks@test.com",
       name: "Stock Investor",
-      emailVerified: true,
-      accounts: {
-        create: {
-          id: "account-stocks-001",
-          accountId: "stocks@test.com",
-          providerId: "credential",
-          password,
-        },
-      },
+      password: hashedPassword,
     },
   });
 
-  // User 3: Mixed portfolio
-  const user3 = await prisma.user.create({
+  const demoUser = await prisma.user.create({
     data: {
-      id: "user-demo-001",
       email: "demo@test.com",
       name: "Demo User",
-      emailVerified: true,
-      accounts: {
-        create: {
-          id: "account-demo-001",
-          accountId: "demo@test.com",
-          providerId: "credential",
-          password,
-        },
-      },
+      password: hashedPassword,
     },
   });
 
   console.log("✅ Users created");
 
-  // Create portfolios and assets for User 1 (Crypto)
+  // Create portfolios
   await prisma.portfolio.create({
     data: {
-      id: "portfolio-crypto-001",
       name: "Crypto Holdings",
       description: "Long-term crypto investments",
-      userId: user1.id,
+      userId: cryptoUser.id,
       assets: {
         create: [
-          {
-            symbol: "BTC",
-            name: "Bitcoin",
-            type: "CRYPTO",
-            quantity: 1.5,
-            avgPrice: 42000,
-          },
-          {
-            symbol: "ETH",
-            name: "Ethereum",
-            type: "CRYPTO",
-            quantity: 10,
-            avgPrice: 2200,
-          },
-          {
-            symbol: "SOL",
-            name: "Solana",
-            type: "CRYPTO",
-            quantity: 50,
-            avgPrice: 95,
-          },
-          {
-            symbol: "LINK",
-            name: "Chainlink",
-            type: "CRYPTO",
-            quantity: 200,
-            avgPrice: 14,
-          },
+          { symbol: "BTC", name: "Bitcoin", type: "CRYPTO", quantity: 1.5, avgPrice: 42000 },
+          { symbol: "ETH", name: "Ethereum", type: "CRYPTO", quantity: 10, avgPrice: 2200 },
+          { symbol: "SOL", name: "Solana", type: "CRYPTO", quantity: 50, avgPrice: 95 },
+          { symbol: "LINK", name: "Chainlink", type: "CRYPTO", quantity: 200, avgPrice: 14 },
         ],
       },
     },
   });
 
-  // Create portfolios and assets for User 2 (Stocks)
   await prisma.portfolio.create({
     data: {
-      id: "portfolio-stocks-001",
       name: "Tech Stocks",
       description: "Technology sector investments",
-      userId: user2.id,
+      userId: stocksUser.id,
       assets: {
         create: [
-          {
-            symbol: "AAPL",
-            name: "Apple Inc.",
-            type: "STOCK",
-            quantity: 50,
-            avgPrice: 175,
-          },
-          {
-            symbol: "MSFT",
-            name: "Microsoft Corporation",
-            type: "STOCK",
-            quantity: 30,
-            avgPrice: 380,
-          },
-          {
-            symbol: "GOOGL",
-            name: "Alphabet Inc.",
-            type: "STOCK",
-            quantity: 20,
-            avgPrice: 140,
-          },
-          {
-            symbol: "NVDA",
-            name: "NVIDIA Corporation",
-            type: "STOCK",
-            quantity: 15,
-            avgPrice: 480,
-          },
-          {
-            symbol: "TSLA",
-            name: "Tesla Inc.",
-            type: "STOCK",
-            quantity: 25,
-            avgPrice: 245,
-          },
+          { symbol: "AAPL", name: "Apple Inc.", type: "STOCK", quantity: 50, avgPrice: 175 },
+          { symbol: "MSFT", name: "Microsoft", type: "STOCK", quantity: 30, avgPrice: 380 },
+          { symbol: "GOOGL", name: "Alphabet", type: "STOCK", quantity: 20, avgPrice: 140 },
+          { symbol: "NVDA", name: "NVIDIA", type: "STOCK", quantity: 15, avgPrice: 480 },
+          { symbol: "TSLA", name: "Tesla", type: "STOCK", quantity: 25, avgPrice: 245 },
         ],
       },
     },
@@ -175,68 +81,29 @@ async function main() {
 
   await prisma.portfolio.create({
     data: {
-      id: "portfolio-dividend-001",
       name: "Dividend Portfolio",
       description: "Stable dividend stocks",
-      userId: user2.id,
+      userId: stocksUser.id,
       assets: {
         create: [
-          {
-            symbol: "JNJ",
-            name: "Johnson & Johnson",
-            type: "STOCK",
-            quantity: 40,
-            avgPrice: 155,
-          },
-          {
-            symbol: "KO",
-            name: "Coca-Cola Company",
-            type: "STOCK",
-            quantity: 100,
-            avgPrice: 58,
-          },
+          { symbol: "JNJ", name: "Johnson & Johnson", type: "STOCK", quantity: 40, avgPrice: 155 },
+          { symbol: "KO", name: "Coca-Cola", type: "STOCK", quantity: 100, avgPrice: 58 },
         ],
       },
     },
   });
 
-  // Create portfolios and assets for User 3 (Mixed - Demo)
   await prisma.portfolio.create({
     data: {
-      id: "portfolio-mixed-001",
       name: "My Portfolio",
       description: "Mixed crypto and stocks",
-      userId: user3.id,
+      userId: demoUser.id,
       assets: {
         create: [
-          {
-            symbol: "BTC",
-            name: "Bitcoin",
-            type: "CRYPTO",
-            quantity: 0.5,
-            avgPrice: 45000,
-          },
-          {
-            symbol: "ETH",
-            name: "Ethereum",
-            type: "CRYPTO",
-            quantity: 5,
-            avgPrice: 2400,
-          },
-          {
-            symbol: "AAPL",
-            name: "Apple Inc.",
-            type: "STOCK",
-            quantity: 20,
-            avgPrice: 180,
-          },
-          {
-            symbol: "AMZN",
-            name: "Amazon.com Inc.",
-            type: "STOCK",
-            quantity: 10,
-            avgPrice: 175,
-          },
+          { symbol: "BTC", name: "Bitcoin", type: "CRYPTO", quantity: 0.5, avgPrice: 45000 },
+          { symbol: "ETH", name: "Ethereum", type: "CRYPTO", quantity: 5, avgPrice: 2400 },
+          { symbol: "AAPL", name: "Apple Inc.", type: "STOCK", quantity: 20, avgPrice: 180 },
+          { symbol: "AMZN", name: "Amazon", type: "STOCK", quantity: 10, avgPrice: 175 },
         ],
       },
     },
@@ -244,55 +111,33 @@ async function main() {
 
   await prisma.portfolio.create({
     data: {
-      id: "portfolio-altcoin-001",
       name: "Altcoins",
       description: "High risk altcoin bets",
-      userId: user3.id,
+      userId: demoUser.id,
       assets: {
         create: [
-          {
-            symbol: "DOGE",
-            name: "Dogecoin",
-            type: "CRYPTO",
-            quantity: 10000,
-            avgPrice: 0.08,
-          },
-          {
-            symbol: "ADA",
-            name: "Cardano",
-            type: "CRYPTO",
-            quantity: 2000,
-            avgPrice: 0.45,
-          },
-          {
-            symbol: "DOT",
-            name: "Polkadot",
-            type: "CRYPTO",
-            quantity: 150,
-            avgPrice: 6.5,
-          },
+          { symbol: "DOGE", name: "Dogecoin", type: "CRYPTO", quantity: 10000, avgPrice: 0.08 },
+          { symbol: "ADA", name: "Cardano", type: "CRYPTO", quantity: 2000, avgPrice: 0.45 },
+          { symbol: "DOT", name: "Polkadot", type: "CRYPTO", quantity: 150, avgPrice: 6.5 },
         ],
       },
     },
   });
 
-  console.log("✅ Portfolios and assets created");
+  console.log("✅ Portfolios created");
 
-  console.log("\n📋 Test Accounts:");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("Email: crypto@test.com    | Password: password123 | Crypto focused");
-  console.log("Email: stocks@test.com    | Password: password123 | Stocks focused");
-  console.log("Email: demo@test.com      | Password: password123 | Mixed portfolio");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-  console.log("\n🎉 Seeding complete!");
+  console.log("\n📋 Test Accounts (password: password123):");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("• crypto@test.com  - Crypto portfolio");
+  console.log("• stocks@test.com  - Stock portfolios");
+  console.log("• demo@test.com    - Mixed portfolio");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("\n🎉 Done!");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed error:", e);
+    console.error("❌ Error:", e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => prisma.$disconnect());
