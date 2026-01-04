@@ -13,5 +13,4 @@ RUN corepack enable && corepack prepare yarn@stable --activate
 EXPOSE 3000
 
 # Keep container running and use mounted volumes
-CMD ["sh", "-c", "yarn install && yarn db:generate && yarn dev"]
-
+CMD ["sh", "-c", "yarn install && yarn dev"]

@@ -69,4 +69,3 @@ volumes:
 networks:
   folio-network:
     driver: bridge
-
