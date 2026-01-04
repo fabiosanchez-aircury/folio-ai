@@ -41,6 +41,7 @@ const RAW_RUNTIME_STATE =
           ["app", "workspace:."],\
           ["autoprefixer", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:10.4.23"],\
           ["bcryptjs", "npm:3.0.3"],\
+          ["better-auth", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:1.4.10"],\
           ["class-variance-authority", "npm:0.7.1"],\
           ["clsx", "npm:2.1.1"],\
           ["eslint", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:9.39.2"],\
@@ -48,7 +49,6 @@ const RAW_RUNTIME_STATE =
           ["ioredis", "npm:5.8.2"],\
           ["lucide-react", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:0.562.0"],\
           ["next", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:14.2.35"],\
-          ["next-auth", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:5.0.0-beta.30"],\
           ["postcss", "npm:8.5.6"],\
           ["prisma", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:7.2.0"],\
           ["react", "npm:19.2.3"],\
@@ -151,41 +151,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../root/.yarn/berry/cache/@alloc-quick-lru-npm-5.2.0-eb83517088-10c0.zip/node_modules/@alloc/quick-lru/",\
         "packageDependencies": [\
           ["@alloc/quick-lru", "npm:5.2.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@auth/core", [\
-      ["npm:0.41.0", {\
-        "packageLocation": "../root/.yarn/berry/cache/@auth-core-npm-0.41.0-971e4b0f22-10c0.zip/node_modules/@auth/core/",\
-        "packageDependencies": [\
-          ["@auth/core", "npm:0.41.0"]\
-        ],\
-        "linkType": "SOFT"\
-      }],\
-      ["virtual:1841d58aba8d5e8340d11c080c5bf0a13a838b20058306ac4af94488a5d5850ab050cb56c051ed1c59755e24c706c94063b081b3b74473588587b83c1d46df03#npm:0.41.0", {\
-        "packageLocation": "./.yarn/__virtual__/@auth-core-virtual-8df68cc5e8/2/root/.yarn/berry/cache/@auth-core-npm-0.41.0-971e4b0f22-10c0.zip/node_modules/@auth/core/",\
-        "packageDependencies": [\
-          ["@auth/core", "virtual:1841d58aba8d5e8340d11c080c5bf0a13a838b20058306ac4af94488a5d5850ab050cb56c051ed1c59755e24c706c94063b081b3b74473588587b83c1d46df03#npm:0.41.0"],\
-          ["@panva/hkdf", "npm:1.2.1"],\
-          ["@simplewebauthn/browser", null],\
-          ["@simplewebauthn/server", null],\
-          ["@types/nodemailer", null],\
-          ["@types/simplewebauthn__browser", null],\
-          ["@types/simplewebauthn__server", null],\
-          ["jose", "npm:6.1.3"],\
-          ["nodemailer", null],\
-          ["oauth4webapi", "npm:3.8.3"],\
-          ["preact", "npm:10.24.3"],\
-          ["preact-render-to-string", "virtual:8df68cc5e8557ecd7e6b81243e28c65d06cf9e327f6b80abb8c91ff9723f16f97039b14f1081ab78bf9dd8d9bed0cd26e81e5cebc52c9e92a15370ceade187a5#npm:6.5.11"]\
-        ],\
-        "packagePeers": [\
-          "@simplewebauthn/browser",\
-          "@simplewebauthn/server",\
-          "@types/nodemailer",\
-          "@types/simplewebauthn__browser",\
-          "@types/simplewebauthn__server",\
-          "nodemailer"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -391,6 +356,92 @@ const RAW_RUNTIME_STATE =
           ["@babel/helper-string-parser", "npm:7.27.1"],\
           ["@babel/helper-validator-identifier", "npm:7.28.5"],\
           ["@babel/types", "npm:7.28.5"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@better-auth/core", [\
+      ["npm:1.4.10", {\
+        "packageLocation": "../root/.yarn/berry/cache/@better-auth-core-npm-1.4.10-b91fb17803-10c0.zip/node_modules/@better-auth/core/",\
+        "packageDependencies": [\
+          ["@better-auth/core", "npm:1.4.10"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.4.10", {\
+        "packageLocation": "./.yarn/__virtual__/@better-auth-core-virtual-7fed04c3ee/2/root/.yarn/berry/cache/@better-auth-core-npm-1.4.10-b91fb17803-10c0.zip/node_modules/@better-auth/core/",\
+        "packageDependencies": [\
+          ["@better-auth/core", "virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.4.10"],\
+          ["@better-auth/utils", "npm:0.3.0"],\
+          ["@better-fetch/fetch", "npm:1.1.21"],\
+          ["@standard-schema/spec", "npm:1.1.0"],\
+          ["@types/better-auth__utils", null],\
+          ["@types/better-call", null],\
+          ["@types/better-fetch__fetch", null],\
+          ["@types/jose", null],\
+          ["@types/kysely", null],\
+          ["@types/nanostores", null],\
+          ["better-call", "virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.1.7"],\
+          ["jose", "npm:6.1.3"],\
+          ["kysely", "npm:0.28.9"],\
+          ["nanostores", "npm:1.1.0"],\
+          ["zod", "npm:4.3.5"]\
+        ],\
+        "packagePeers": [\
+          "@better-auth/utils",\
+          "@better-fetch/fetch",\
+          "@types/better-auth__utils",\
+          "@types/better-call",\
+          "@types/better-fetch__fetch",\
+          "@types/jose",\
+          "@types/kysely",\
+          "@types/nanostores",\
+          "better-call",\
+          "jose",\
+          "kysely",\
+          "nanostores"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@better-auth/telemetry", [\
+      ["npm:1.4.10", {\
+        "packageLocation": "../root/.yarn/berry/cache/@better-auth-telemetry-npm-1.4.10-cccec9bd01-10c0.zip/node_modules/@better-auth/telemetry/",\
+        "packageDependencies": [\
+          ["@better-auth/telemetry", "npm:1.4.10"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.4.10", {\
+        "packageLocation": "./.yarn/__virtual__/@better-auth-telemetry-virtual-7832a3c01e/2/root/.yarn/berry/cache/@better-auth-telemetry-npm-1.4.10-cccec9bd01-10c0.zip/node_modules/@better-auth/telemetry/",\
+        "packageDependencies": [\
+          ["@better-auth/core", "virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.4.10"],\
+          ["@better-auth/telemetry", "virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.4.10"],\
+          ["@better-auth/utils", "npm:0.3.0"],\
+          ["@better-fetch/fetch", "npm:1.1.21"],\
+          ["@types/better-auth__core", null]\
+        ],\
+        "packagePeers": [\
+          "@better-auth/core",\
+          "@types/better-auth__core"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@better-auth/utils", [\
+      ["npm:0.3.0", {\
+        "packageLocation": "../root/.yarn/berry/cache/@better-auth-utils-npm-0.3.0-c6b7635191-10c0.zip/node_modules/@better-auth/utils/",\
+        "packageDependencies": [\
+          ["@better-auth/utils", "npm:0.3.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@better-fetch/fetch", [\
+      ["npm:1.1.21", {\
+        "packageLocation": "../root/.yarn/berry/cache/@better-fetch-fetch-npm-1.1.21-bda863e6ad-10c0.zip/node_modules/@better-fetch/fetch/",\
+        "packageDependencies": [\
+          ["@better-fetch/fetch", "npm:1.1.21"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -884,6 +935,24 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@noble/ciphers", [\
+      ["npm:2.1.1", {\
+        "packageLocation": "../root/.yarn/berry/cache/@noble-ciphers-npm-2.1.1-624aa44155-10c0.zip/node_modules/@noble/ciphers/",\
+        "packageDependencies": [\
+          ["@noble/ciphers", "npm:2.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@noble/hashes", [\
+      ["npm:2.0.1", {\
+        "packageLocation": "../root/.yarn/berry/cache/@noble-hashes-npm-2.0.1-3deaaa8c92-10c0.zip/node_modules/@noble/hashes/",\
+        "packageDependencies": [\
+          ["@noble/hashes", "npm:2.0.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@nodelib/fs.scandir", [\
       ["npm:2.1.5", {\
         "packageLocation": "../root/.yarn/berry/cache/@nodelib-fs.scandir-npm-2.1.5-89c67370dd-10c0.zip/node_modules/@nodelib/fs.scandir/",\
@@ -929,15 +998,6 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../root/.yarn/berry/cache/@opentelemetry-api-npm-1.9.0-7d0560d0dd-10c0.zip/node_modules/@opentelemetry/api/",\
         "packageDependencies": [\
           ["@opentelemetry/api", "npm:1.9.0"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@panva/hkdf", [\
-      ["npm:1.2.1", {\
-        "packageLocation": "../root/.yarn/berry/cache/@panva-hkdf-npm-1.2.1-0e4816a25a-10c0.zip/node_modules/@panva/hkdf/",\
-        "packageDependencies": [\
-          ["@panva/hkdf", "npm:1.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1959,6 +2019,7 @@ const RAW_RUNTIME_STATE =
           ["app", "workspace:."],\
           ["autoprefixer", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:10.4.23"],\
           ["bcryptjs", "npm:3.0.3"],\
+          ["better-auth", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:1.4.10"],\
           ["class-variance-authority", "npm:0.7.1"],\
           ["clsx", "npm:2.1.1"],\
           ["eslint", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:9.39.2"],\
@@ -1966,7 +2027,6 @@ const RAW_RUNTIME_STATE =
           ["ioredis", "npm:5.8.2"],\
           ["lucide-react", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:0.562.0"],\
           ["next", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:14.2.35"],\
-          ["next-auth", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:5.0.0-beta.30"],\
           ["postcss", "npm:8.5.6"],\
           ["prisma", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:7.2.0"],\
           ["react", "npm:19.2.3"],\
@@ -2227,6 +2287,134 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../root/.yarn/berry/cache/bcryptjs-npm-3.0.3-834b97d2ce-10c0.zip/node_modules/bcryptjs/",\
         "packageDependencies": [\
           ["bcryptjs", "npm:3.0.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["better-auth", [\
+      ["npm:1.4.10", {\
+        "packageLocation": "../root/.yarn/berry/cache/better-auth-npm-1.4.10-eea06d4baa-10c0.zip/node_modules/better-auth/",\
+        "packageDependencies": [\
+          ["better-auth", "npm:1.4.10"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:1.4.10", {\
+        "packageLocation": "./.yarn/__virtual__/better-auth-virtual-1ea7fffdeb/2/root/.yarn/berry/cache/better-auth-npm-1.4.10-eea06d4baa-10c0.zip/node_modules/better-auth/",\
+        "packageDependencies": [\
+          ["@better-auth/core", "virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.4.10"],\
+          ["@better-auth/telemetry", "virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.4.10"],\
+          ["@better-auth/utils", "npm:0.3.0"],\
+          ["@better-fetch/fetch", "npm:1.1.21"],\
+          ["@lynx-js/react", null],\
+          ["@noble/ciphers", "npm:2.1.1"],\
+          ["@noble/hashes", "npm:2.0.1"],\
+          ["@prisma/client", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:7.2.0"],\
+          ["@sveltejs/kit", null],\
+          ["@tanstack/react-start", null],\
+          ["@types/better-sqlite3", null],\
+          ["@types/drizzle-kit", null],\
+          ["@types/drizzle-orm", null],\
+          ["@types/lynx-js__react", null],\
+          ["@types/mongodb", null],\
+          ["@types/mysql2", null],\
+          ["@types/next", null],\
+          ["@types/pg", null],\
+          ["@types/prisma", null],\
+          ["@types/prisma__client", null],\
+          ["@types/react", "npm:19.2.7"],\
+          ["@types/react-dom", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:19.2.3"],\
+          ["@types/solid-js", null],\
+          ["@types/svelte", null],\
+          ["@types/sveltejs__kit", null],\
+          ["@types/tanstack__react-start", null],\
+          ["@types/vitest", null],\
+          ["@types/vue", null],\
+          ["better-auth", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:1.4.10"],\
+          ["better-call", "virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.1.7"],\
+          ["better-sqlite3", null],\
+          ["defu", "npm:6.1.4"],\
+          ["drizzle-kit", null],\
+          ["drizzle-orm", null],\
+          ["jose", "npm:6.1.3"],\
+          ["kysely", "npm:0.28.9"],\
+          ["mongodb", null],\
+          ["mysql2", null],\
+          ["nanostores", "npm:1.1.0"],\
+          ["next", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:14.2.35"],\
+          ["pg", null],\
+          ["prisma", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:7.2.0"],\
+          ["react", "npm:19.2.3"],\
+          ["react-dom", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:19.2.3"],\
+          ["solid-js", null],\
+          ["svelte", null],\
+          ["vitest", null],\
+          ["vue", null],\
+          ["zod", "npm:4.3.5"]\
+        ],\
+        "packagePeers": [\
+          "@lynx-js/react",\
+          "@prisma/client",\
+          "@sveltejs/kit",\
+          "@tanstack/react-start",\
+          "@types/better-sqlite3",\
+          "@types/drizzle-kit",\
+          "@types/drizzle-orm",\
+          "@types/lynx-js__react",\
+          "@types/mongodb",\
+          "@types/mysql2",\
+          "@types/next",\
+          "@types/pg",\
+          "@types/prisma",\
+          "@types/prisma__client",\
+          "@types/react-dom",\
+          "@types/react",\
+          "@types/solid-js",\
+          "@types/svelte",\
+          "@types/sveltejs__kit",\
+          "@types/tanstack__react-start",\
+          "@types/vitest",\
+          "@types/vue",\
+          "better-sqlite3",\
+          "drizzle-kit",\
+          "drizzle-orm",\
+          "mongodb",\
+          "mysql2",\
+          "next",\
+          "pg",\
+          "prisma",\
+          "react-dom",\
+          "react",\
+          "solid-js",\
+          "svelte",\
+          "vitest",\
+          "vue"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["better-call", [\
+      ["npm:1.1.7", {\
+        "packageLocation": "../root/.yarn/berry/cache/better-call-npm-1.1.7-7d2780f8b0-10c0.zip/node_modules/better-call/",\
+        "packageDependencies": [\
+          ["better-call", "npm:1.1.7"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.1.7", {\
+        "packageLocation": "./.yarn/__virtual__/better-call-virtual-4a077ed5fd/2/root/.yarn/berry/cache/better-call-npm-1.1.7-7d2780f8b0-10c0.zip/node_modules/better-call/",\
+        "packageDependencies": [\
+          ["@better-auth/utils", "npm:0.3.0"],\
+          ["@better-fetch/fetch", "npm:1.1.21"],\
+          ["@types/zod", null],\
+          ["better-call", "virtual:1ea7fffdeb95c2b6bf8075d9dab2bde314ad58fd8f363520e8d5af15c94e6778a71a2fc5690a213f32cf862ebfb9a605ed94256427e5583bf9f54647c285f606#npm:1.1.7"],\
+          ["rou3", "npm:0.7.12"],\
+          ["set-cookie-parser", "npm:2.7.2"],\
+          ["zod", "npm:4.3.5"]\
+        ],\
+        "packagePeers": [\
+          "@types/zod",\
+          "zod"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -4364,6 +4552,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["kysely", [\
+      ["npm:0.28.9", {\
+        "packageLocation": "../root/.yarn/berry/cache/kysely-npm-0.28.9-9aa91f3b1d-10c0.zip/node_modules/kysely/",\
+        "packageDependencies": [\
+          ["kysely", "npm:0.28.9"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["language-subtag-registry", [\
       ["npm:0.3.23", {\
         "packageLocation": "../root/.yarn/berry/cache/language-subtag-registry-npm-0.3.23-06b360f90f-10c0.zip/node_modules/language-subtag-registry/",\
@@ -4741,6 +4938,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["nanostores", [\
+      ["npm:1.1.0", {\
+        "packageLocation": "../root/.yarn/berry/cache/nanostores-npm-1.1.0-2128ab5748-10c0.zip/node_modules/nanostores/",\
+        "packageDependencies": [\
+          ["nanostores", "npm:1.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["napi-postinstall", [\
       ["npm:0.3.4", {\
         "packageLocation": "../root/.yarn/berry/cache/napi-postinstall-npm-0.3.4-a58e1fcbc3-10c0.zip/node_modules/napi-postinstall/",\
@@ -4813,45 +5019,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["next-auth", [\
-      ["npm:5.0.0-beta.30", {\
-        "packageLocation": "../root/.yarn/berry/cache/next-auth-npm-5.0.0-beta.30-93a79aca3b-10c0.zip/node_modules/next-auth/",\
-        "packageDependencies": [\
-          ["next-auth", "npm:5.0.0-beta.30"]\
-        ],\
-        "linkType": "SOFT"\
-      }],\
-      ["virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:5.0.0-beta.30", {\
-        "packageLocation": "./.yarn/__virtual__/next-auth-virtual-1841d58aba/2/root/.yarn/berry/cache/next-auth-npm-5.0.0-beta.30-93a79aca3b-10c0.zip/node_modules/next-auth/",\
-        "packageDependencies": [\
-          ["@auth/core", "virtual:1841d58aba8d5e8340d11c080c5bf0a13a838b20058306ac4af94488a5d5850ab050cb56c051ed1c59755e24c706c94063b081b3b74473588587b83c1d46df03#npm:0.41.0"],\
-          ["@simplewebauthn/browser", null],\
-          ["@simplewebauthn/server", null],\
-          ["@types/next", null],\
-          ["@types/nodemailer", null],\
-          ["@types/react", "npm:19.2.7"],\
-          ["@types/simplewebauthn__browser", null],\
-          ["@types/simplewebauthn__server", null],\
-          ["next", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:14.2.35"],\
-          ["next-auth", "virtual:0460f86c7587ee75dac643681550c044e8047ba46e219a5baac054fc0fea2d0af97a9bd3fe4b22de0884797215e0a1a4368bb60f9ef7087a69c4008789f4e032#npm:5.0.0-beta.30"],\
-          ["nodemailer", null],\
-          ["react", "npm:19.2.3"]\
-        ],\
-        "packagePeers": [\
-          "@simplewebauthn/browser",\
-          "@simplewebauthn/server",\
-          "@types/next",\
-          "@types/nodemailer",\
-          "@types/react",\
-          "@types/simplewebauthn__browser",\
-          "@types/simplewebauthn__server",\
-          "next",\
-          "nodemailer",\
-          "react"\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["node-fetch-native", [\
       ["npm:1.6.7", {\
         "packageLocation": "../root/.yarn/berry/cache/node-fetch-native-npm-1.6.7-346a13c388-10c0.zip/node_modules/node-fetch-native/",\
@@ -4880,15 +5047,6 @@ const RAW_RUNTIME_STATE =
           ["pathe", "npm:2.0.3"],\
           ["pkg-types", "npm:2.3.0"],\
           ["tinyexec", "npm:1.0.2"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["oauth4webapi", [\
-      ["npm:3.8.3", {\
-        "packageLocation": "../root/.yarn/berry/cache/oauth4webapi-npm-3.8.3-39d38ecdce-10c0.zip/node_modules/oauth4webapi/",\
-        "packageDependencies": [\
-          ["oauth4webapi", "npm:3.8.3"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5183,37 +5341,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["preact", [\
-      ["npm:10.24.3", {\
-        "packageLocation": "../root/.yarn/berry/cache/preact-npm-10.24.3-1e33d81667-10c0.zip/node_modules/preact/",\
-        "packageDependencies": [\
-          ["preact", "npm:10.24.3"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["preact-render-to-string", [\
-      ["npm:6.5.11", {\
-        "packageLocation": "../root/.yarn/berry/cache/preact-render-to-string-npm-6.5.11-431b4c85e0-10c0.zip/node_modules/preact-render-to-string/",\
-        "packageDependencies": [\
-          ["preact-render-to-string", "npm:6.5.11"]\
-        ],\
-        "linkType": "SOFT"\
-      }],\
-      ["virtual:8df68cc5e8557ecd7e6b81243e28c65d06cf9e327f6b80abb8c91ff9723f16f97039b14f1081ab78bf9dd8d9bed0cd26e81e5cebc52c9e92a15370ceade187a5#npm:6.5.11", {\
-        "packageLocation": "./.yarn/__virtual__/preact-render-to-string-virtual-b3d6a5310c/2/root/.yarn/berry/cache/preact-render-to-string-npm-6.5.11-431b4c85e0-10c0.zip/node_modules/preact-render-to-string/",\
-        "packageDependencies": [\
-          ["@types/preact", null],\
-          ["preact", "npm:10.24.3"],\
-          ["preact-render-to-string", "virtual:8df68cc5e8557ecd7e6b81243e28c65d06cf9e327f6b80abb8c91ff9723f16f97039b14f1081ab78bf9dd8d9bed0cd26e81e5cebc52c9e92a15370ceade187a5#npm:6.5.11"]\
-        ],\
-        "packagePeers": [\
-          "@types/preact",\
-          "preact"\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["prelude-ls", [\
       ["npm:1.2.1", {\
         "packageLocation": "../root/.yarn/berry/cache/prelude-ls-npm-1.2.1-3e4d272a55-10c0.zip/node_modules/prelude-ls/",\
@@ -5495,6 +5622,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["rou3", [\
+      ["npm:0.7.12", {\
+        "packageLocation": "../root/.yarn/berry/cache/rou3-npm-0.7.12-359bd187fc-10c0.zip/node_modules/rou3/",\
+        "packageDependencies": [\
+          ["rou3", "npm:0.7.12"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["run-parallel", [\
       ["npm:1.2.0", {\
         "packageLocation": "../root/.yarn/berry/cache/run-parallel-npm-1.2.0-3f47ff2034-10c0.zip/node_modules/run-parallel/",\
@@ -5581,6 +5717,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../root/.yarn/berry/cache/seq-queue-npm-0.0.5-d5064d9793-10c0.zip/node_modules/seq-queue/",\
         "packageDependencies": [\
           ["seq-queue", "npm:0.0.5"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["set-cookie-parser", [\
+      ["npm:2.7.2", {\
+        "packageLocation": "../root/.yarn/berry/cache/set-cookie-parser-npm-2.7.2-e1a4d1221b-10c0.zip/node_modules/set-cookie-parser/",\
+        "packageDependencies": [\
+          ["set-cookie-parser", "npm:2.7.2"]\
         ],\
         "linkType": "HARD"\
       }]\
