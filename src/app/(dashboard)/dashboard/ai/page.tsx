@@ -5,17 +5,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { Bot, Send, User, Loader2, Sparkles, RefreshCw } from "lucide-react";
+
+const chatTransport = new DefaultChatTransport({ api: "/api/ai/chat" });
+
+// Helper to extract text from message parts
+function getMessageText(parts: Array<{ type: string; text?: string }>): string {
+  return parts
+    .filter((part) => part.type === "text" && part.text)
+    .map((part) => part.text)
+    .join("");
+}
 
 export default function AIPage() {
   const [portfolioSummary, setPortfolioSummary] = useState<string | null>(null);
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+  const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } =
+  const { messages, sendMessage, status, error } =
     useChat({
-      api: "/api/ai/chat",
+      transport: chatTransport,
     });
+
+  const isLoading = status === "streaming" || status === "submitted";
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    const message = inputValue;
+    setInputValue("");
+    await sendMessage({ text: message });
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -110,12 +136,7 @@ export default function AIPage() {
                       key={suggestion}
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        const fakeEvent = {
-                          target: { value: suggestion },
-                        } as React.ChangeEvent<HTMLInputElement>;
-                        handleInputChange(fakeEvent);
-                      }}
+                      onClick={() => setInputValue(suggestion)}
                     >
                       {suggestion}
                     </Button>
@@ -143,7 +164,7 @@ export default function AIPage() {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">{getMessageText(message.parts)}</p>
                 </div>
                 {message.role === "user" && (
                   <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -175,14 +196,14 @@ export default function AIPage() {
 
           {/* Input */}
           <div className="p-4 border-t border-border">
-            <form onSubmit={handleSubmit} className="flex gap-2">
+            <form onSubmit={onSubmit} className="flex gap-2">
               <Input
-                value={input}
+                value={inputValue}
                 onChange={handleInputChange}
                 placeholder="Ask about your portfolio, markets, or strategies..."
                 disabled={isLoading}
               />
-              <Button type="submit" disabled={isLoading || !input.trim()}>
+              <Button type="submit" disabled={isLoading || !inputValue.trim()}>
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

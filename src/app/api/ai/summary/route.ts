@@ -64,8 +64,42 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   } catch (error) {
     console.error("AI summary error:", error);
+    
+    const errorObj = error as { message?: string; data?: { error?: { details?: { retryDelay?: string }[] } } };
+    const errorMessage = errorObj.message || "";
+    
+    // Handle rate limiting
+    if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+      // Try to extract retry delay from error
+      let retryDelay = "60";
+      try {
+        const details = errorObj.data?.error?.details;
+        if (details) {
+          const retryInfo = details.find((d: Record<string, unknown>) => d["@type"]?.toString().includes("RetryInfo"));
+          if (retryInfo && retryInfo.retryDelay) {
+            retryDelay = retryInfo.retryDelay.toString().replace("s", "");
+          }
+        }
+      } catch {
+        // Use default
+      }
+      
+      return NextResponse.json(
+        { error: `Rate limit exceeded. Please wait ${retryDelay} seconds and try again.` },
+        { status: 429 }
+      );
+    }
+    
+    // Handle API key issues
+    if (errorMessage.includes("API key") || errorMessage.includes("API_KEY")) {
+      return NextResponse.json(
+        { error: "AI service not configured. Please add GOOGLE_GENERATIVE_AI_API_KEY to environment." },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: "Failed to generate summary" },
+      { error: "Failed to generate summary. Please try again." },
       { status: 500 }
     );
   }

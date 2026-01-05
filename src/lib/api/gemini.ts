@@ -1,7 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { generateText, streamText } from "ai";
 
-const model = google("gemini-1.5-flash");
+const model = google("gemini-2.0-flash");
 
 export interface PortfolioContext {
   assets: {
@@ -27,7 +27,9 @@ Portfolio:
 ${context.assets
   .map(
     (a) =>
-      `- ${a.symbol}${a.name ? ` (${a.name})` : ""}: ${a.quantity} units at $${a.avgPrice} avg (${a.type})`
+      `- ${a.symbol}${a.name ? ` (${a.name})` : ""}: ${a.quantity} units at $${
+        a.avgPrice
+      } avg (${a.type})`
   )
   .join("\n")}
 
@@ -36,7 +38,10 @@ Total Portfolio Value: $${context.totalValue.toLocaleString()}
 ${
   context.news && context.news.length > 0
     ? `Recent News:
-${context.news.slice(0, 5).map((n) => `- [${n.symbol}] ${n.title}`).join("\n")}`
+${context.news
+  .slice(0, 5)
+  .map((n) => `- [${n.symbol}] ${n.title}`)
+  .join("\n")}`
     : ""
 }
 
@@ -63,7 +68,12 @@ export async function generateNewsSummary(
   const prompt = `You are a financial news analyst. Summarize these news articles and identify key market trends:
 
 News Articles:
-${news.slice(0, 10).map((n, i) => `${i + 1}. ${n.title}\n   ${n.summary}\n   Source: ${n.source}`).join("\n\n")}
+${news
+  .slice(0, 10)
+  .map(
+    (n, i) => `${i + 1}. ${n.title}\n   ${n.summary}\n   Source: ${n.source}`
+  )
+  .join("\n\n")}
 
 Provide:
 1. A brief summary of the overall market sentiment
@@ -128,7 +138,9 @@ export async function analyzeAsset(
   type: "CRYPTO" | "STOCK",
   historicalData?: { date: string; price: number }[]
 ) {
-  const prompt = `You are a financial analyst. Analyze this ${type === "CRYPTO" ? "cryptocurrency" : "stock"}:
+  const prompt = `You are a financial analyst. Analyze this ${
+    type === "CRYPTO" ? "cryptocurrency" : "stock"
+  }:
 
 Symbol: ${symbol}
 Type: ${type}
@@ -136,7 +148,10 @@ Type: ${type}
 ${
   historicalData && historicalData.length > 0
     ? `Recent Price History (last ${historicalData.length} data points):
-${historicalData.slice(-10).map((d) => `${d.date}: $${d.price}`).join("\n")}`
+${historicalData
+  .slice(-10)
+  .map((d) => `${d.date}: $${d.price}`)
+  .join("\n")}`
     : ""
 }
 
@@ -157,4 +172,3 @@ Keep the analysis concise and factual.`;
 
   return text;
 }
-

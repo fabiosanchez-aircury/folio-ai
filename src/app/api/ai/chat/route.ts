@@ -2,6 +2,14 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { chatWithAI, PortfolioContext } from "@/lib/api/gemini";
 
+// Helper to extract text from UIMessage parts
+function getTextFromParts(parts: Array<{ type: string; text?: string }>): string {
+  return parts
+    .filter((part) => part.type === "text" && part.text)
+    .map((part) => part.text)
+    .join("");
+}
+
 export async function POST(request: Request) {
   const session = await auth();
 
@@ -10,7 +18,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { messages } = await request.json();
+    const { messages: rawMessages } = await request.json();
+
+    // Convert UIMessage format (with parts) to simple format (with content)
+    const messages = rawMessages.map((m: { role: string; parts?: Array<{ type: string; text?: string }>; content?: string }) => ({
+      role: m.role as "user" | "assistant",
+      content: m.parts ? getTextFromParts(m.parts) : m.content || "",
+    }));
 
     // Get user's portfolio for context
     const portfolios = await prisma.portfolio.findMany({
@@ -44,7 +58,7 @@ export async function POST(request: Request) {
 
     const result = await chatWithAI(messages, portfolioContext);
 
-    return result.toDataStreamResponse();
+    return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error("AI chat error:", error);
     return new Response(
