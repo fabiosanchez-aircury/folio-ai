@@ -1,4 +1,4 @@
-# Folio
+# Folio AI
 
 A centralized portfolio tracker for cryptocurrencies and stocks with AI-powered insights.
 
@@ -36,8 +36,8 @@ Folio helps you monitor all your investments in one place. Track your crypto and
 docker-compose up -d
 
 # Run migrations and seed data
-docker exec folio-app yarn db:push
-docker exec folio-app yarn db:seed
+docker exec folio-ai-app yarn db:push
+docker exec folio-ai-app yarn db:seed
 
 # Access at http://localhost:3000
 ```

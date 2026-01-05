@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: folio-app
+    container_name: folio-ai-app
     ports:
       - "3000:3000"
     volumes:
@@ -29,13 +29,13 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - folio-network
+      - folio-ai-network
     stdin_open: true
     tty: true
 
   postgres:
     image: postgres:16-alpine
-    container_name: folio-postgres
+    container_name: folio-ai-postgres
     environment:
       POSTGRES_USER: folio
       POSTGRES_PASSWORD: folio
@@ -50,11 +50,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - folio-network
+      - folio-ai-network
 
   redis:
     image: redis:7-alpine
-    container_name: folio-redis
+    container_name: folio-ai-redis
     ports:
       - "6379:6379"
     volumes:
@@ -65,12 +65,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - folio-network
+      - folio-ai-network
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  folio-network:
+  folio-ai-network:
     driver: bridge
