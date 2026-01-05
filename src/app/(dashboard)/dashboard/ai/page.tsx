@@ -113,7 +113,7 @@ export default function AIPage() {
           <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
-              Chat with Folio AI
+              Chat with FolioAI
             </CardTitle>
           </CardHeader>
 

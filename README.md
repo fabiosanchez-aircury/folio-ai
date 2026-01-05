@@ -1,10 +1,12 @@
-# Folio AI
-
-A centralized portfolio tracker for cryptocurrencies and stocks with AI-powered insights.
+<div align="center">
+  <img src="public/images/folio-ai.png" alt="FolioAI Logo" width="120" />
+  <h1>FolioAI</h1>
+  <p><strong>A centralized portfolio tracker for cryptocurrencies and stocks with AI-powered insights.</strong></p>
+</div>
 
 ## About
 
-Folio helps you monitor all your investments in one place. Track your crypto and stock holdings, get personalized news affecting your assets, and receive AI-guided insights based on market trends and historical data.
+FolioAI helps you monitor all your investments in one place. Track your crypto and stock holdings, get personalized news affecting your assets, and receive AI-guided insights based on market trends and historical data.
 
 > ⚠️ **Disclaimer**: AI insights are for informational purposes only and do not constitute financial advice.
 

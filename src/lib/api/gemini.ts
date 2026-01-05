@@ -96,7 +96,7 @@ export async function chatWithAI(
   messages: { role: "user" | "assistant"; content: string }[],
   portfolioContext?: PortfolioContext
 ) {
-  const systemPrompt = `You are Folio AI, a helpful financial assistant specializing in portfolio analysis, market trends, and investment insights. 
+  const systemPrompt = `You are FolioAI, a helpful financial assistant specializing in portfolio analysis, market trends, and investment insights. 
 
 ${
   portfolioContext

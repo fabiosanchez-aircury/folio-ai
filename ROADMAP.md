@@ -1,6 +1,6 @@
 # Roadmap
 
-Future features and improvements for Folio AI.
+Future features and improvements for FolioAI.
 
 ## 🚀 Planned Features
 

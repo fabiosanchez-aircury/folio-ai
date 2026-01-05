@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -10,7 +11,6 @@ import {
   LineChart,
   Bot,
   Settings,
-  TrendingUp,
 } from "lucide-react";
 
 const navigation = [
@@ -31,11 +31,15 @@ export function Sidebar() {
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-border bg-card px-6 pb-4">
           {/* Logo */}
-          <div className="flex h-16 shrink-0 items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold">Folio</span>
+          <div className="flex h-16 shrink-0 items-center justify-start gap-3 pt-1">
+            <Image 
+              src="/images/folio-ai.png" 
+              alt="FolioAI" 
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
+            <span className="text-lg font-bold leading-none">FolioAI</span>
           </div>
 
           {/* Navigation */}
@@ -44,9 +48,9 @@ export function Sidebar() {
               <li>
                 <ul role="list" className="-mx-2 space-y-1">
                   {navigation.map((item) => {
-                    const isActive = pathname === item.href || 
+                    const isActive = pathname === item.href ||
                       (item.href !== "/dashboard" && pathname.startsWith(item.href));
-                    
+
                     return (
                       <li key={item.name}>
                         <Link

@@ -13,8 +13,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Folio - Portfolio Tracker",
+  title: "FolioAI - Portfolio Tracker",
   description: "Track your investments, crypto, and stocks with AI-powered insights",
+  icons: {
+    icon: "/images/folio-ai.png",
+    apple: "/images/folio-ai.png",
+  },
 };
 
 export default function RootLayout({

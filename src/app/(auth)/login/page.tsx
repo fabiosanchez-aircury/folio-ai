@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, TrendingUp } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,10 +60,14 @@ export default function LoginPage() {
     <Card className="w-full max-w-md border-border/50 bg-card/80 backdrop-blur-sm">
       <CardHeader className="space-y-1 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-2xl font-bold">Folio</span>
+          <Image 
+            src="/images/folio-ai.png" 
+            alt="FolioAI" 
+            width={56}
+            height={56}
+            className="rounded-xl"
+          />
+          <span className="text-2xl font-bold">FolioAI</span>
         </div>
         <CardTitle className="text-2xl">Welcome back</CardTitle>
         <CardDescription>

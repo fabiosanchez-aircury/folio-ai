@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
@@ -6,23 +8,15 @@ export default function Home() {
       <div className="relative flex min-h-screen flex-col items-center justify-center px-4">
         <div className="text-center space-y-8 max-w-3xl">
           {/* Logo */}
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <svg
-                className="w-7 h-7 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
-              </svg>
-            </div>
-            <h1 className="text-4xl font-bold tracking-tight">Folio</h1>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Image 
+              src="/images/folio-ai.png" 
+              alt="FolioAI" 
+              width={64}
+              height={64}
+              className="rounded-xl"
+            />
+            <h1 className="text-4xl font-bold tracking-tight">FolioAI</h1>
           </div>
 
           {/* Hero text */}
