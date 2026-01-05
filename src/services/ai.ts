@@ -10,7 +10,9 @@ const AIService = {
   /**
    * Get AI-generated summary
    */
-  getSummary: async (type: SummaryType = "portfolio"): Promise<SummaryResponse> => {
+  getSummary: async (
+    type: SummaryType = "portfolio"
+  ): Promise<SummaryResponse> => {
     const response = await api.get<SummaryResponse>("/ai/summary", {
       params: { type },
     });
@@ -19,4 +21,3 @@ const AIService = {
 };
 
 export default AIService;
-

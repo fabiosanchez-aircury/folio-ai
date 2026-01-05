@@ -28,7 +28,10 @@ const ChartService = {
   /**
    * Get chart data for a symbol
    */
-  getChartData: async (symbol: string, timeRange: TimeRange = "3M"): Promise<ChartResponse> => {
+  getChartData: async (
+    symbol: string,
+    timeRange: TimeRange = "3M"
+  ): Promise<ChartResponse> => {
     const response = await api.get<ChartResponse>("/charts", {
       params: { symbol, timeRange },
     });
@@ -37,4 +40,3 @@ const ChartService = {
 };
 
 export default ChartService;
-

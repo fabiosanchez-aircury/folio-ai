@@ -27,7 +27,7 @@ api.interceptors.response.use(
     // Handle common errors
     if (error.response) {
       const { status, data } = error.response;
-      
+
       // Handle specific status codes
       switch (status) {
         case 401:
@@ -44,10 +44,9 @@ api.interceptors.response.use(
           break;
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
 
 export default api;
-

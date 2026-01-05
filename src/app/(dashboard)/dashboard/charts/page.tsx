@@ -72,10 +72,10 @@ export default function ChartsPage() {
   };
 
   // Calculate high/low from data
-  const high24h = data.length > 0 
+  const high24h = data.length > 0
     ? Math.max(...data.slice(-96).map(d => d.high || d.close || 0))
     : null;
-  const low24h = data.length > 0 
+  const low24h = data.length > 0
     ? Math.min(...data.slice(-96).map(d => d.low || d.close || Infinity))
     : null;
 
@@ -221,7 +221,7 @@ export default function ChartsPage() {
           </CardHeader>
           <CardContent>
             <p className={`text-2xl font-bold ${(ticker?.change || 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
-              {ticker?.change !== undefined 
+              {ticker?.change !== undefined
                 ? `${ticker.change >= 0 ? "+" : ""}$${ticker.change.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 : "—"}
             </p>
