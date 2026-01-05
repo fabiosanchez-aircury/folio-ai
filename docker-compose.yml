@@ -10,7 +10,7 @@ services:
       - .:/app
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://folio:folio@postgres:5432/folio?schema=public
+      - DATABASE_URL=postgresql://folio:folio@postgres:5432/folio?schema=folio_ai
       - REDIS_URL=redis://redis:6379
       # Auth
       - AUTH_SECRET=dev-secret-change-in-production

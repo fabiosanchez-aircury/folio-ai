@@ -2983,9 +2983,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"folio@workspace:.":
+"folio-ai@workspace:.":
   version: 0.0.0-use.local
-  resolution: "folio@workspace:."
+  resolution: "folio-ai@workspace:."
   dependencies:
     "@ai-sdk/google": "npm:^3.0.2"
     "@ai-sdk/react": "npm:^3.0.6"

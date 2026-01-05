@@ -5,55 +5,63 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["folio_ai"]
 }
 
 // NextAuth.js tables
 model User {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String?
-  email         String    @unique
-  emailVerified DateTime?
+  email         String      @unique
+  emailVerified DateTime?   @map("email_verified")
   image         String?
   password      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
   accounts      Account[]
   sessions      Session[]
   portfolios    Portfolio[]
   apiKeys       ApiKey[]
+
+  @@map("users")
+  @@schema("folio_ai")
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
   type              String
   provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  providerAccountId String   @map("provider_account_id")
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?  @db.Text
   session_state     String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
+  @@map("accounts")
+  @@schema("folio_ai")
 }
 
 model Session {
   id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
   expires      DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@map("sessions")
+  @@schema("folio_ai")
 }
 
 model VerificationToken {
@@ -62,6 +70,8 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
+  @@schema("folio_ai")
 }
 
 // Application tables
@@ -69,13 +79,15 @@ model Portfolio {
   id          String   @id @default(cuid())
   name        String
   description String?
-  userId      String
+  userId      String   @map("user_id")
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   assets      Asset[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@index([userId])
+  @@map("portfolios")
+  @@schema("folio_ai")
 }
 
 model Asset {
@@ -84,59 +96,73 @@ model Asset {
   name        String?
   type        AssetType
   quantity    Decimal   @db.Decimal(18, 8)
-  avgPrice    Decimal   @db.Decimal(18, 8)
-  portfolioId String
+  avgPrice    Decimal   @map("avg_price") @db.Decimal(18, 8)
+  portfolioId String    @map("portfolio_id")
   portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@unique([portfolioId, symbol])
   @@index([portfolioId])
   @@index([symbol])
+  @@map("assets")
+  @@schema("folio_ai")
 }
 
 model ApiKey {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   platform  Platform
-  apiKey    String
-  apiSecret String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lastSync  DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  apiKey    String    @map("api_key")
+  apiSecret String    @map("api_secret")
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastSync  DateTime? @map("last_sync")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@unique([userId, platform])
   @@index([userId])
+  @@map("api_keys")
+  @@schema("folio_ai")
 }
 
 model NewsCache {
   id        String   @id @default(cuid())
   symbol    String
   articles  Json
-  fetchedAt DateTime @default(now())
-  expiresAt DateTime
+  fetchedAt DateTime @default(now()) @map("fetched_at")
+  expiresAt DateTime @map("expires_at")
 
   @@index([symbol])
   @@index([expiresAt])
+  @@map("news_cache")
+  @@schema("folio_ai")
 }
 
 model PriceCache {
   id        String   @id @default(cuid())
   symbol    String   @unique
   price     Decimal  @db.Decimal(18, 8)
-  change24h Decimal  @db.Decimal(18, 8)
+  change24h Decimal  @map("change_24h") @db.Decimal(18, 8)
   data      Json?
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([symbol])
+  @@map("price_cache")
+  @@schema("folio_ai")
 }
 
 enum AssetType {
   CRYPTO
   STOCK
+
+  @@map("asset_type")
+  @@schema("folio_ai")
 }
 
 enum Platform {
   BINANCE
+
+  @@map("platform")
+  @@schema("folio_ai")
 }
