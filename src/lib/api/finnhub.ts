@@ -1,4 +1,4 @@
-const FINNHUB_URL = "https://finnhub.io/api/v1";
+import { finnhubClient } from "./clients";
 
 interface FinnhubNews {
   category: string;
@@ -23,6 +23,16 @@ interface FinnhubQuote {
   t: number; // Timestamp
 }
 
+interface SymbolSearchResult {
+  count: number;
+  result: Array<{
+    description: string;
+    displaySymbol: string;
+    symbol: string;
+    type: string;
+  }>;
+}
+
 export async function getCompanyNews(
   symbol: string,
   apiKey: string,
@@ -35,15 +45,16 @@ export async function getCompanyNews(
   const fromDate = from || weekAgo.toISOString().split("T")[0];
   const toDate = to || now.toISOString().split("T")[0];
 
-  const response = await fetch(
-    `${FINNHUB_URL}/company-news?symbol=${symbol}&from=${fromDate}&to=${toDate}&token=${apiKey}`
-  );
+  const response = await finnhubClient.get<FinnhubNews[]>("/company-news", {
+    params: {
+      symbol,
+      from: fromDate,
+      to: toDate,
+      token: apiKey,
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch company news");
-  }
-
-  const data: FinnhubNews[] = await response.json();
+  const data = response.data;
 
   return data.map((news) => ({
     id: String(news.id),
@@ -58,16 +69,18 @@ export async function getCompanyNews(
   }));
 }
 
-export async function getMarketNews(apiKey: string, category: string = "general") {
-  const response = await fetch(
-    `${FINNHUB_URL}/news?category=${category}&token=${apiKey}`
-  );
+export async function getMarketNews(
+  apiKey: string,
+  category: string = "general"
+) {
+  const response = await finnhubClient.get<FinnhubNews[]>("/news", {
+    params: {
+      category,
+      token: apiKey,
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch market news");
-  }
-
-  const data: FinnhubNews[] = await response.json();
+  const data = response.data;
 
   return data.map((news) => ({
     id: String(news.id),
@@ -83,15 +96,14 @@ export async function getMarketNews(apiKey: string, category: string = "general"
 }
 
 export async function getQuote(symbol: string, apiKey: string) {
-  const response = await fetch(
-    `${FINNHUB_URL}/quote?symbol=${symbol}&token=${apiKey}`
-  );
+  const response = await finnhubClient.get<FinnhubQuote>("/quote", {
+    params: {
+      symbol,
+      token: apiKey,
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch quote");
-  }
-
-  const data: FinnhubQuote = await response.json();
+  const data = response.data;
 
   return {
     price: data.c,
@@ -105,37 +117,30 @@ export async function getQuote(symbol: string, apiKey: string) {
   };
 }
 
-export async function getCryptoSymbols(apiKey: string, exchange: string = "binance") {
-  const response = await fetch(
-    `${FINNHUB_URL}/crypto/symbol?exchange=${exchange}&token=${apiKey}`
-  );
+export async function getCryptoSymbols(
+  apiKey: string,
+  exchange: string = "binance"
+) {
+  const response = await finnhubClient.get("/crypto/symbol", {
+    params: {
+      exchange,
+      token: apiKey,
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch crypto symbols");
-  }
-
-  return response.json();
+  return response.data;
 }
 
-interface SymbolSearchResult {
-  count: number;
-  result: Array<{
-    description: string;
-    displaySymbol: string;
-    symbol: string;
-    type: string;
-  }>;
+export async function symbolSearch(
+  query: string,
+  apiKey: string
+): Promise<SymbolSearchResult> {
+  const response = await finnhubClient.get<SymbolSearchResult>("/search", {
+    params: {
+      q: query,
+      token: apiKey,
+    },
+  });
+
+  return response.data;
 }
-
-export async function symbolSearch(query: string, apiKey: string): Promise<SymbolSearchResult> {
-  const response = await fetch(
-    `${FINNHUB_URL}/search?q=${encodeURIComponent(query)}&token=${apiKey}`
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to search symbols");
-  }
-
-  return response.json();
-}
-

@@ -1,6 +1,5 @@
 import crypto from "crypto";
-
-const BINANCE_API_URL = "https://api.binance.com";
+import { binanceClient } from "./clients";
 
 interface BinanceBalance {
   asset: string;
@@ -27,6 +26,13 @@ interface BinanceKline {
   closeTime: number;
 }
 
+interface Binance24hTicker {
+  symbol: string;
+  lastPrice: string;
+  priceChange: string;
+  priceChangePercent: string;
+}
+
 function generateSignature(queryString: string, apiSecret: string): string {
   return crypto
     .createHmac("sha256", apiSecret)
@@ -42,21 +48,17 @@ export async function getBinanceAccountInfo(
   const queryString = `timestamp=${timestamp}`;
   const signature = generateSignature(queryString, apiSecret);
 
-  const response = await fetch(
-    `${BINANCE_API_URL}/api/v3/account?${queryString}&signature=${signature}`,
-    {
-      headers: {
-        "X-MBX-APIKEY": apiKey,
-      },
-    }
-  );
+  const response = await binanceClient.get<BinanceAccountInfo>("/api/v3/account", {
+    params: {
+      timestamp,
+      signature,
+    },
+    headers: {
+      "X-MBX-APIKEY": apiKey,
+    },
+  });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.msg || "Failed to fetch account info");
-  }
-
-  return response.json();
+  return response.data;
 }
 
 export async function getBinanceBalances(
@@ -76,34 +78,31 @@ export async function getBinanceBalances(
 }
 
 export async function getBinancePrice(symbol: string): Promise<number> {
-  const response = await fetch(
-    `${BINANCE_API_URL}/api/v3/ticker/price?symbol=${symbol}USDT`
-  );
-
-  if (!response.ok) {
+  try {
+    const response = await binanceClient.get<BinancePrice>("/api/v3/ticker/price", {
+      params: {
+        symbol: `${symbol}USDT`,
+      },
+    });
+    return parseFloat(response.data.price);
+  } catch {
     // Try with BUSD if USDT fails
-    const busdResponse = await fetch(
-      `${BINANCE_API_URL}/api/v3/ticker/price?symbol=${symbol}BUSD`
-    );
-    if (!busdResponse.ok) {
+    try {
+      const response = await binanceClient.get<BinancePrice>("/api/v3/ticker/price", {
+        params: {
+          symbol: `${symbol}BUSD`,
+        },
+      });
+      return parseFloat(response.data.price);
+    } catch {
       return 0;
     }
-    const busdData: BinancePrice = await busdResponse.json();
-    return parseFloat(busdData.price);
   }
-
-  const data: BinancePrice = await response.json();
-  return parseFloat(data.price);
 }
 
 export async function getBinancePrices(): Promise<Map<string, number>> {
-  const response = await fetch(`${BINANCE_API_URL}/api/v3/ticker/price`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch prices");
-  }
-
-  const data: BinancePrice[] = await response.json();
+  const response = await binanceClient.get<BinancePrice[]>("/api/v3/ticker/price");
+  const data = response.data;
   const prices = new Map<string, number>();
 
   data.forEach((item) => {
@@ -124,44 +123,41 @@ export async function getBinanceKlines(
   interval: string = "1d",
   limit: number = 100
 ): Promise<BinanceKline[]> {
-  const response = await fetch(
-    `${BINANCE_API_URL}/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`
-  );
+  const response = await binanceClient.get<(string | number)[][]>("/api/v3/klines", {
+    params: {
+      symbol: `${symbol}USDT`,
+      interval,
+      limit,
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch klines");
-  }
-
-  const data = await response.json();
-
-  return data.map((k: (string | number)[]) => ({
-    openTime: k[0],
-    open: k[1],
-    high: k[2],
-    low: k[3],
-    close: k[4],
-    volume: k[5],
-    closeTime: k[6],
+  return response.data.map((k) => ({
+    openTime: Number(k[0]),
+    open: String(k[1]),
+    high: String(k[2]),
+    low: String(k[3]),
+    close: String(k[4]),
+    volume: String(k[5]),
+    closeTime: Number(k[6]),
   }));
 }
 
 export async function get24hChange(
   symbol: string
 ): Promise<{ price: number; change: number; changePercent: number }> {
-  const response = await fetch(
-    `${BINANCE_API_URL}/api/v3/ticker/24hr?symbol=${symbol}USDT`
-  );
+  try {
+    const response = await binanceClient.get<Binance24hTicker>("/api/v3/ticker/24hr", {
+      params: {
+        symbol: `${symbol}USDT`,
+      },
+    });
 
-  if (!response.ok) {
+    return {
+      price: parseFloat(response.data.lastPrice),
+      change: parseFloat(response.data.priceChange),
+      changePercent: parseFloat(response.data.priceChangePercent),
+    };
+  } catch {
     return { price: 0, change: 0, changePercent: 0 };
   }
-
-  const data = await response.json();
-
-  return {
-    price: parseFloat(data.lastPrice),
-    change: parseFloat(data.priceChange),
-    changePercent: parseFloat(data.priceChangePercent),
-  };
 }
-

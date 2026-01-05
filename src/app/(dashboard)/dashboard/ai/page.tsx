@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Bot, Send, User, Loader2, Sparkles, RefreshCw } from "lucide-react";
+import api from "@/services/api";
 
 const chatTransport = new DefaultChatTransport({ api: "/api/ai/chat" });
 
@@ -54,9 +55,10 @@ export default function AIPage() {
   const fetchPortfolioSummary = async () => {
     setIsLoadingSummary(true);
     try {
-      const response = await fetch("/api/ai/summary?type=portfolio");
-      const data = await response.json();
-      setPortfolioSummary(data.summary);
+      const response = await api.get<{ summary: string }>("/ai/summary", {
+        params: { type: "portfolio" },
+      });
+      setPortfolioSummary(response.data.summary);
     } catch {
       setPortfolioSummary("Failed to generate summary. Please try again.");
     } finally {

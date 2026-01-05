@@ -54,9 +54,13 @@ const PortfolioService = {
   /**
    * Search for coins/stocks to add to portfolio
    */
-  search: async (query: string): Promise<SearchResult[]> => {
+  search: async (query: string, type?: "CRYPTO" | "STOCK"): Promise<SearchResult[]> => {
+    const params: Record<string, string> = { q: query };
+    if (type) {
+      params.type = type;
+    }
     const response = await api.get<{ results: SearchResult[] }>("/portfolio/search", {
-      params: { q: query },
+      params,
     });
     return response.data.results;
   },
@@ -75,6 +79,16 @@ const PortfolioService = {
   getAllWithValues: async (): Promise<PortfolioSummary[]> => {
     const response = await api.get<{ portfolios: PortfolioSummary[] }>("/portfolio/values");
     return response.data.portfolios;
+  },
+
+  /**
+   * Get popular assets (crypto or stocks)
+   */
+  getPopular: async (type: "CRYPTO" | "STOCK" = "CRYPTO"): Promise<SearchResult[]> => {
+    const response = await api.get<{ results: SearchResult[] }>("/portfolio/popular", {
+      params: { type },
+    });
+    return response.data.results;
   },
 };
 

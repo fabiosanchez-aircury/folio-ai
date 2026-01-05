@@ -1,4 +1,4 @@
-const ALPHA_VANTAGE_URL = "https://www.alphavantage.co/query";
+import { alphaVantageClient } from "./clients";
 
 interface GlobalQuote {
   "01. symbol": string;
@@ -30,22 +30,40 @@ interface TimeSeriesDaily {
   "Time Series (Daily)": Record<string, DailyData>;
 }
 
+interface AlphaVantageResponse<T> {
+  "Global Quote"?: T;
+  "Time Series (Daily)"?: Record<string, DailyData>;
+  "bestMatches"?: Array<{
+    "1. symbol": string;
+    "2. name": string;
+    "3. type": string;
+    "4. region": string;
+    "8. currency": string;
+  }>;
+  Note?: string;
+  "Error Message"?: string;
+}
+
 export async function getStockQuote(symbol: string, apiKey: string) {
-  const response = await fetch(
-    `${ALPHA_VANTAGE_URL}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`
-  );
+  const response = await alphaVantageClient.get<AlphaVantageResponse<GlobalQuote>>("", {
+    params: {
+      function: "GLOBAL_QUOTE",
+      symbol,
+      apikey: apiKey,
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch stock quote");
-  }
+  const data = response.data;
 
-  const data = await response.json();
-
-  if (data["Note"]) {
+  if (data.Note) {
     throw new Error("API rate limit reached");
   }
 
-  const quote: GlobalQuote = data["Global Quote"];
+  if (data["Error Message"]) {
+    throw new Error(data["Error Message"]);
+  }
+
+  const quote = data["Global Quote"];
 
   if (!quote || !quote["05. price"]) {
     throw new Error("Symbol not found");
@@ -70,15 +88,16 @@ export async function getStockHistory(
   apiKey: string,
   outputSize: "compact" | "full" = "compact"
 ) {
-  const response = await fetch(
-    `${ALPHA_VANTAGE_URL}?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=${outputSize}&apikey=${apiKey}`
-  );
+  const response = await alphaVantageClient.get<TimeSeriesDaily>("", {
+    params: {
+      function: "TIME_SERIES_DAILY",
+      symbol,
+      outputsize: outputSize,
+      apikey: apiKey,
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch stock history");
-  }
-
-  const data: TimeSeriesDaily = await response.json();
+  const data = response.data;
 
   if ((data as unknown as { Note?: string })["Note"]) {
     throw new Error("API rate limit reached");
@@ -105,31 +124,35 @@ export async function getStockHistory(
 }
 
 export async function searchSymbol(keywords: string, apiKey: string) {
-  const response = await fetch(
-    `${ALPHA_VANTAGE_URL}?function=SYMBOL_SEARCH&keywords=${keywords}&apikey=${apiKey}`
-  );
+  const response = await alphaVantageClient.get<
+    AlphaVantageResponse<{
+      "1. symbol": string;
+      "2. name": string;
+      "3. type": string;
+      "4. region": string;
+      "8. currency": string;
+    }>
+  >("", {
+    params: {
+      function: "SYMBOL_SEARCH",
+      keywords,
+      apikey: apiKey,
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to search symbols");
-  }
+  const data = response.data;
 
-  const data = await response.json();
-
-  if (data["Note"]) {
+  if (data.Note) {
     throw new Error("API rate limit reached");
   }
 
-  interface MatchResult {
-    "1. symbol": string;
-    "2. name": string;
-    "3. type": string;
-    "4. region": string;
-    "8. currency": string;
+  if (data["Error Message"]) {
+    throw new Error(data["Error Message"]);
   }
 
   const matches = data["bestMatches"] || [];
 
-  return matches.map((match: MatchResult) => ({
+  return matches.map((match) => ({
     symbol: match["1. symbol"],
     name: match["2. name"],
     type: match["3. type"],
@@ -137,4 +160,3 @@ export async function searchSymbol(keywords: string, apiKey: string) {
     currency: match["8. currency"],
   }));
 }
-

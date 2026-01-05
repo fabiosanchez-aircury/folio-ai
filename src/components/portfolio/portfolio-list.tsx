@@ -11,6 +11,7 @@ import { AddAssetModal } from "./add-asset-modal";
 import { EditPortfolioModal } from "./edit-portfolio-modal";
 import { AssetRow } from "./asset-row";
 import type { Asset, Portfolio } from "@prisma/client";
+import api from "@/services/api";
 
 type PortfolioWithAssets = Portfolio & { assets: Asset[] };
 
@@ -52,11 +53,8 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
   const fetchValues = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/portfolio/values");
-      if (response.ok) {
-        const data = await response.json();
-        setPortfoliosWithValues(data.portfolios);
-      }
+      const response = await api.get<{ portfolios: PortfolioWithValues[] }>("/portfolio/values");
+      setPortfoliosWithValues(response.data.portfolios);
     } catch (error) {
       console.error("Failed to fetch portfolio values:", error);
     } finally {

@@ -8,7 +8,7 @@
  * Docs: https://www.coingecko.com/en/api/documentation
  */
 
-const BASE_URL = "https://api.coingecko.com/api/v3";
+import { coinGeckoClient } from "./clients";
 
 export interface CoinPrice {
   [coinId: string]: {
@@ -50,13 +50,8 @@ export interface CoinHistoryData {
  * Get list of all supported coins
  */
 export async function getCoinsList(): Promise<CoinInfo[]> {
-  const response = await fetch(`${BASE_URL}/coins/list`);
-
-  if (!response.ok) {
-    throw new Error(`CoinGecko API error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await coinGeckoClient.get<CoinInfo[]>("/coins/list");
+  return response.data;
 }
 
 /**
@@ -71,15 +66,18 @@ export async function searchCoins(query: string): Promise<{
     large: string;
   }>;
 }> {
-  const response = await fetch(
-    `${BASE_URL}/search?query=${encodeURIComponent(query)}`
-  );
-
-  if (!response.ok) {
-    throw new Error(`CoinGecko API error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await coinGeckoClient.get<{
+    coins: Array<{
+      id: string;
+      name: string;
+      symbol: string;
+      thumb: string;
+      large: string;
+    }>;
+  }>("/search", {
+    params: { query },
+  });
+  return response.data;
 }
 
 /**
@@ -93,28 +91,25 @@ export async function getCoinsPrice(
     includeMarketCap?: boolean;
   }
 ): Promise<CoinPrice> {
-  const params = new URLSearchParams({
+  const params: Record<string, string> = {
     ids: coinIds.join(","),
     vs_currencies: "usd",
-  });
+  };
 
   if (options?.include24hChange) {
-    params.append("include_24hr_change", "true");
+    params.include_24hr_change = "true";
   }
   if (options?.include24hVol) {
-    params.append("include_24hr_vol", "true");
+    params.include_24hr_vol = "true";
   }
   if (options?.includeMarketCap) {
-    params.append("include_market_cap", "true");
+    params.include_market_cap = "true";
   }
 
-  const response = await fetch(`${BASE_URL}/simple/price?${params}`);
-
-  if (!response.ok) {
-    throw new Error(`CoinGecko API error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await coinGeckoClient.get<CoinPrice>("/simple/price", {
+    params,
+  });
+  return response.data;
 }
 
 /**
@@ -129,29 +124,29 @@ export async function getCoinsMarkets(
     priceChangePercentage?: string;
   }
 ): Promise<CoinMarketData[]> {
-  const params = new URLSearchParams({
+  const params: Record<string, string> = {
     vs_currency: "usd",
     order: "market_cap_desc",
     per_page: String(options?.perPage || 100),
     page: String(options?.page || 1),
     sparkline: String(options?.sparkline || false),
-  });
+  };
 
   if (coinIds && coinIds.length > 0) {
-    params.append("ids", coinIds.join(","));
+    params.ids = coinIds.join(",");
   }
 
   if (options?.priceChangePercentage) {
-    params.append("price_change_percentage", options.priceChangePercentage);
+    params.price_change_percentage = options.priceChangePercentage;
   }
 
-  const response = await fetch(`${BASE_URL}/coins/markets?${params}`);
-
-  if (!response.ok) {
-    throw new Error(`CoinGecko API error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await coinGeckoClient.get<CoinMarketData[]>(
+    "/coins/markets",
+    {
+      params,
+    }
+  );
+  return response.data;
 }
 
 /**
@@ -161,20 +156,16 @@ export async function getCoinHistory(
   coinId: string,
   days: number | "max" = 30
 ): Promise<CoinHistoryData> {
-  const params = new URLSearchParams({
-    vs_currency: "usd",
-    days: String(days),
-  });
-
-  const response = await fetch(
-    `${BASE_URL}/coins/${coinId}/market_chart?${params}`
+  const response = await coinGeckoClient.get<CoinHistoryData>(
+    `/coins/${coinId}/market_chart`,
+    {
+      params: {
+        vs_currency: "usd",
+        days: String(days),
+      },
+    }
   );
-
-  if (!response.ok) {
-    throw new Error(`CoinGecko API error: ${response.statusText}`);
-  }
-
-  return response.json();
+  return response.data;
 }
 
 /**
@@ -194,15 +185,28 @@ export async function getCoinDetails(coinId: string): Promise<{
     total_volume: { usd: number };
   };
 }> {
-  const response = await fetch(
-    `${BASE_URL}/coins/${coinId}?localization=false&tickers=false&community_data=false&developer_data=false`
-  );
-
-  if (!response.ok) {
-    throw new Error(`CoinGecko API error: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await coinGeckoClient.get<{
+    id: string;
+    symbol: string;
+    name: string;
+    image: { thumb: string; small: string; large: string };
+    market_data: {
+      current_price: { usd: number };
+      price_change_percentage_24h: number;
+      price_change_percentage_7d: number;
+      price_change_percentage_30d: number;
+      market_cap: { usd: number };
+      total_volume: { usd: number };
+    };
+  }>(`/coins/${coinId}`, {
+    params: {
+      localization: "false",
+      tickers: "false",
+      community_data: "false",
+      developer_data: "false",
+    },
+  });
+  return response.data;
 }
 
 /**

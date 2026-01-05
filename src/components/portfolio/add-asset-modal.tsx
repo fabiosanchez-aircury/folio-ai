@@ -26,9 +26,11 @@ interface AddAssetModalProps {
 type InputMode = "quantity" | "value";
 
 export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
+  const [assetType, setAssetType] = useState<"CRYPTO" | "STOCK">("CRYPTO");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState<SearchResult | null>(null);
 
   const [inputMode, setInputMode] = useState<InputMode>("quantity");
@@ -43,30 +45,53 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Load default popular assets
+  const loadDefaultAssets = useCallback(async (type: "CRYPTO" | "STOCK") => {
+    setIsLoadingDefaults(true);
+    try {
+      const results = await PortfolioService.getPopular(type);
+      setSearchResults(results);
+    } catch (err) {
+      console.error("Failed to load default assets:", err);
+      setSearchResults([]);
+    } finally {
+      setIsLoadingDefaults(false);
+    }
+  }, []);
+
+  // Load defaults on mount and when type changes
+  useEffect(() => {
+    if (!selectedAsset && searchQuery.length === 0) {
+      loadDefaultAssets(assetType);
+    }
+  }, [assetType, selectedAsset, searchQuery, loadDefaultAssets]);
+
   // Debounced search
   const debouncedSearch = useCallback(
-    debounce(async (query: string) => {
+    debounce(async (query: string, type: "CRYPTO" | "STOCK") => {
       if (query.length < 2) {
-        setSearchResults([]);
+        // Reload defaults if query is cleared
+        await loadDefaultAssets(type);
         return;
       }
 
       setIsSearching(true);
       try {
-        const results = await PortfolioService.search(query);
+        const results = await PortfolioService.search(query, type);
         setSearchResults(results);
       } catch (err) {
         console.error("Search error:", err);
+        setSearchResults([]);
       } finally {
         setIsSearching(false);
       }
     }, 300),
-    []
+    [loadDefaultAssets]
   );
 
   useEffect(() => {
-    debouncedSearch(searchQuery);
-  }, [searchQuery, debouncedSearch]);
+    debouncedSearch(searchQuery, assetType);
+  }, [searchQuery, assetType, debouncedSearch]);
 
   // Fetch current price when asset is selected
   useEffect(() => {
@@ -105,7 +130,7 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
     };
 
     fetchPrice();
-  }, [selectedAsset]);
+  }, [selectedAsset, avgPrice]);
 
   // Calculate quantity from value or vice versa
   useEffect(() => {
@@ -119,6 +144,12 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
     setSelectedAsset(asset);
     setSearchQuery("");
     setSearchResults([]);
+  };
+
+  const handleTypeChange = (type: "CRYPTO" | "STOCK") => {
+    setAssetType(type);
+    setSearchQuery("");
+    setSelectedAsset(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -171,60 +202,140 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
           {/* Search Section */}
           {!selectedAsset ? (
             <div className="space-y-2">
+              {/* Type Filter */}
+              <div className="space-y-2">
+                <Label>Asset Type</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={assetType === "CRYPTO" ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => handleTypeChange("CRYPTO")}
+                    disabled={isSearching || isLoadingDefaults}
+                  >
+                    Crypto
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={assetType === "STOCK" ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => handleTypeChange("STOCK")}
+                    disabled={isSearching || isLoadingDefaults}
+                  >
+                    Stocks
+                  </Button>
+                </div>
+              </div>
+
               <Label>Search Asset</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search crypto or stocks..."
+                  placeholder={`Search ${assetType === "CRYPTO" ? "crypto" : "stocks"}...`}
                   className="pl-9"
                   autoFocus
                 />
-                {isSearching && (
+                {(isSearching || isLoadingDefaults) && (
                   <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
                 )}
               </div>
 
-              {/* Search Results */}
-              {searchResults.length > 0 && (
-                <div className="border border-border rounded-lg divide-y divide-border max-h-60 overflow-y-auto">
-                  {searchResults.map((result) => (
-                    <button
-                      key={`${result.type}-${result.id}`}
-                      type="button"
-                      className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
-                      onClick={() => handleSelectAsset(result)}
-                    >
-                      {result.image ? (
-                        <img
-                          src={result.image}
-                          alt={result.name}
-                          className="w-8 h-8 rounded-full"
-                          onError={(e) => {
-                            // Hide image if it fails to load
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
-                          {result.symbol.slice(0, 2)}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{result.symbol}</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                            {result.type}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {result.name}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
+              {/* Search Results or Defaults */}
+              {searchQuery.length === 0 ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Popular {assetType === "CRYPTO" ? "Cryptocurrencies" : "Stocks"}
+                  </p>
+                  {isLoadingDefaults ? (
+                    <div className="border border-border rounded-lg p-8 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mt-2">Loading...</p>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="border border-border rounded-lg divide-y divide-border max-h-60 overflow-y-auto">
+                      {searchResults.map((result) => (
+                        <button
+                          key={`${result.type}-${result.id}`}
+                          type="button"
+                          className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
+                          onClick={() => handleSelectAsset(result)}
+                        >
+                          {result.image ? (
+                            <img
+                              src={result.image}
+                              alt={result.name}
+                              className="w-8 h-8 rounded-full"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+                              {result.symbol.slice(0, 2)}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{result.symbol}</span>
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                {result.type}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {result.name}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="border border-border rounded-lg p-4 text-center text-sm text-muted-foreground">
+                      No popular {assetType === "CRYPTO" ? "cryptos" : "stocks"} found
+                    </div>
+                  )}
                 </div>
+              ) : (
+                /* Search Results */
+                searchResults.length > 0 && (
+                  <div className="border border-border rounded-lg divide-y divide-border max-h-60 overflow-y-auto">
+                    {searchResults.map((result) => (
+                      <button
+                        key={`${result.type}-${result.id}`}
+                        type="button"
+                        className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
+                        onClick={() => handleSelectAsset(result)}
+                      >
+                        {result.image ? (
+                          <img
+                            src={result.image}
+                            alt={result.name}
+                            className="w-8 h-8 rounded-full"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+                            {result.symbol.slice(0, 2)}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{result.symbol}</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                              {result.type}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {result.name}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )
               )}
             </div>
           ) : (
@@ -238,7 +349,6 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
                       alt={selectedAsset.name}
                       className="w-10 h-10 rounded-full"
                       onError={(e) => {
-                        // Hide image if it fails to load
                         e.currentTarget.style.display = "none";
                       }}
                     />

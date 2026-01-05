@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchCoins } from "@/lib/api/coingecko";
-import { symbolSearch } from "@/lib/api/finnhub";
+import { searchSymbol } from "@/lib/api/alphavantage";
 import { cache } from "@/lib/redis";
 
 export async function GET(request: NextRequest) {
@@ -50,22 +50,31 @@ export async function GET(request: NextRequest) {
       results.push(...cryptoResults);
     }
 
-    // Search stocks via Finnhub
+    // Search stocks via Alpha Vantage
     if (!type || type === "STOCK") {
-      const apiKey = process.env.FINNHUB_API_KEY;
+      const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
       if (apiKey) {
         const cacheKey = `search:stock:${query.toLowerCase()}`;
         let stockResults = await cache.get<typeof results>(cacheKey);
 
         if (!stockResults) {
-          const searchResult = await symbolSearch(query, apiKey);
-          stockResults = searchResult.result.slice(0, 10).map((stock) => ({
-            id: stock.symbol,
-            symbol: stock.symbol,
-            name: stock.description,
-            type: "STOCK" as const,
-          }));
-          await cache.set(cacheKey, stockResults, 60 * 60); // Cache 1 hour
+          try {
+            const searchResult = await searchSymbol(query, apiKey);
+            // Filter to only stocks (exclude ETFs, etc. if needed)
+            stockResults = searchResult
+              .filter((stock) => stock.type === "Equity" || stock.type === "Common Stock")
+              .slice(0, 10)
+              .map((stock) => ({
+                id: stock.symbol,
+                symbol: stock.symbol,
+                name: stock.name,
+                type: "STOCK" as const,
+              }));
+            await cache.set(cacheKey, stockResults, 60 * 60); // Cache 1 hour
+          } catch (error) {
+            console.error("Alpha Vantage search error:", error);
+            stockResults = [];
+          }
         }
 
         results.push(...stockResults);

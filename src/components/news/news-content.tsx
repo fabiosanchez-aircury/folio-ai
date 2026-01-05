@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDateTime } from "@/lib/utils";
 import { Search, ExternalLink, Newspaper, Loader2, Clock } from "lucide-react";
+import api from "@/services/api";
 
 interface NewsArticle {
   id: string;
@@ -50,9 +51,9 @@ export function NewsContent({ userSymbols }: NewsContentProps) {
     setError("");
 
     try {
-      const params = new URLSearchParams();
+      const params: Record<string, string> = {};
       if (symbol) {
-        params.append("symbol", symbol);
+        params.symbol = symbol;
 
         // Calculate date range based on time filter
         const now = new Date();
@@ -72,20 +73,21 @@ export function NewsContent({ userSymbols }: NewsContentProps) {
             from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         }
 
-        params.append("from", from.toISOString().split("T")[0]);
-        params.append("to", new Date().toISOString().split("T")[0]);
+        params.from = from.toISOString().split("T")[0];
+        params.to = new Date().toISOString().split("T")[0];
       } else {
-        params.append("category", category);
+        params.category = category;
       }
 
-      const response = await fetch(`/api/news?${params}`);
-      const data = await response.json();
+      const response = await api.get<{ news?: NewsArticle[]; error?: string }>("/news", {
+        params,
+      });
 
-      if (data.error) {
-        setError(data.error);
+      if (response.data.error) {
+        setError(response.data.error);
         setNews([]);
       } else {
-        setNews(data.news || []);
+        setNews(response.data.news || []);
       }
     } catch {
       setError("Failed to fetch news");

@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Wallet, PieChart, Activity, RefreshCw, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import api from "@/services/api";
 
 interface PortfolioSummary {
   totalValue: number;
@@ -27,12 +28,8 @@ export function PortfolioStats() {
     setError(null);
 
     try {
-      const response = await fetch("/api/portfolio/values");
-      if (!response.ok) {
-        throw new Error("Failed to fetch portfolio data");
-      }
-      const data = await response.json();
-      setSummary(data.summary);
+      const response = await api.get<{ summary: PortfolioSummary }>("/portfolio/values");
+      setSummary(response.data.summary);
       setLastUpdated(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
