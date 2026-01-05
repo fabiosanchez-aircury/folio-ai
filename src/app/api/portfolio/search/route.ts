@@ -27,15 +27,24 @@ export async function GET(request: NextRequest) {
       let cryptoResults = await cache.get<typeof results>(cacheKey);
 
       if (!cryptoResults) {
-        const searchResult = await searchCoins(query);
-        cryptoResults = searchResult.coins.slice(0, 10).map((coin) => ({
-          id: coin.id,
-          symbol: coin.symbol.toUpperCase(),
-          name: coin.name,
-          type: "CRYPTO" as const,
-          image: coin.thumb,
-        }));
-        await cache.set(cacheKey, cryptoResults, 60 * 60); // Cache 1 hour
+        try {
+          const searchResult = await searchCoins(query);
+          cryptoResults = searchResult.coins
+            .slice(0, 15) // Get more results to filter
+            .map((coin) => ({
+              id: coin.id,
+              symbol: coin.symbol.toUpperCase(),
+              name: coin.name,
+              type: "CRYPTO" as const,
+              // Use large image if available, fallback to thumb
+              image: coin.large || coin.thumb || undefined,
+            }))
+            .slice(0, 10); // Return top 10
+          await cache.set(cacheKey, cryptoResults, 60 * 60); // Cache 1 hour
+        } catch (error) {
+          console.error("CoinGecko search error:", error);
+          cryptoResults = [];
+        }
       }
 
       results.push(...cryptoResults);

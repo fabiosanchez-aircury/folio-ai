@@ -83,16 +83,22 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
           [selectedAsset.symbol],
           selectedAsset.type
         );
-        if (prices.length > 0) {
+        if (prices.length > 0 && prices[0].currentPrice > 0) {
           setCurrentPrice(prices[0].currentPrice);
           setPriceChange24h(prices[0].priceChangePercent24h);
           // Pre-fill avg price with current price if empty
           if (!avgPrice) {
             setAvgPrice(prices[0].currentPrice.toString());
           }
+        } else {
+          // Price not available (coin may not have market data in CoinGecko)
+          setCurrentPrice(null);
+          setPriceChange24h(null);
         }
       } catch (err) {
         console.error("Price fetch error:", err);
+        setCurrentPrice(null);
+        setPriceChange24h(null);
       } finally {
         setIsFetchingPrice(false);
       }
@@ -190,12 +196,20 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
                       className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
                       onClick={() => handleSelectAsset(result)}
                     >
-                      {result.image && (
+                      {result.image ? (
                         <img
                           src={result.image}
                           alt={result.name}
                           className="w-8 h-8 rounded-full"
+                          onError={(e) => {
+                            // Hide image if it fails to load
+                            e.currentTarget.style.display = "none";
+                          }}
                         />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+                          {result.symbol.slice(0, 2)}
+                        </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -218,12 +232,20 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
             <div className="p-4 bg-muted/30 rounded-lg border border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {selectedAsset.image && (
+                  {selectedAsset.image ? (
                     <img
                       src={selectedAsset.image}
                       alt={selectedAsset.name}
                       className="w-10 h-10 rounded-full"
+                      onError={(e) => {
+                        // Hide image if it fails to load
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground">
+                      {selectedAsset.symbol.slice(0, 2)}
+                    </div>
                   )}
                   <div>
                     <div className="flex items-center gap-2">
@@ -251,7 +273,7 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span className="text-sm">Fetching price...</span>
                 </div>
-              ) : currentPrice !== null ? (
+              ) : currentPrice !== null && currentPrice > 0 ? (
                 <div className="mt-3 flex items-center gap-3">
                   <span className="text-lg font-semibold">{formatCurrency(currentPrice)}</span>
                   {priceChange24h !== null && (
@@ -269,6 +291,11 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
                       {priceChange24h.toFixed(2)}%
                     </span>
                   )}
+                </div>
+              ) : !isFetchingPrice ? (
+                <div className="mt-3 p-2 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+                  <p>Price data not available for this asset.</p>
+                  <p className="text-xs mt-1">You can still add it manually by entering the average price.</p>
                 </div>
               ) : null}
             </div>

@@ -1,6 +1,10 @@
 /**
  * CoinGecko API Client
- * Free tier: 10-30 calls/minute
+ * Free tier limits:
+ * - Simple endpoints: 10-50 calls/minute
+ * - Complex endpoints: 10-30 calls/minute
+ * - Some coins may not have complete data (price, images, etc.)
+ * - Search may return coins that don't have market data
  * Docs: https://www.coingecko.com/en/api/documentation
  */
 

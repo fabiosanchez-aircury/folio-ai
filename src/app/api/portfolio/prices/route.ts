@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCoinsPrice, symbolToCoinGeckoId, SYMBOL_TO_COINGECKO_ID } from "@/lib/api/coingecko";
+import { getCoinsPrice, getCoinsMarkets, symbolToCoinGeckoId, SYMBOL_TO_COINGECKO_ID } from "@/lib/api/coingecko";
 import { getQuote } from "@/lib/api/finnhub";
 import { cache, CACHE_TTL } from "@/lib/redis";
 
@@ -30,35 +30,94 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ prices: [] });
       }
 
-      // Check cache
-      const cacheKey = `portfolio:prices:${coinGeckoIds.sort().join(",")}`;
-      const cached = await cache.get<Record<string, { usd: number; usd_24h_change?: number }>>(cacheKey);
+      // Use getCoinsMarkets for better data (includes images)
+      const cacheKey = `portfolio:markets:${coinGeckoIds.sort().join(",")}`;
+      let marketsData = await cache.get<Array<{
+        id: string;
+        symbol: string;
+        name: string;
+        image: string;
+        current_price: number;
+        price_change_percentage_24h: number;
+      }>>(cacheKey);
 
-      let priceData = cached;
-      if (!priceData) {
-        priceData = await getCoinsPrice(coinGeckoIds, {
-          include24hChange: true,
-        });
-        await cache.set(cacheKey, priceData, CACHE_TTL.PRICE);
+      if (!marketsData) {
+        try {
+          marketsData = await getCoinsMarkets(coinGeckoIds, {
+            perPage: coinGeckoIds.length,
+            sparkline: false,
+            priceChangePercentage: "24h",
+          });
+          
+          // Filter out coins with no price data
+          marketsData = marketsData.filter((coin) => coin.current_price > 0);
+          
+          await cache.set(cacheKey, marketsData, CACHE_TTL.PRICE);
+        } catch (error) {
+          console.error("Failed to fetch markets data, falling back to simple price:", error);
+          // Fallback to simple price API
+          try {
+            const priceData = await getCoinsPrice(coinGeckoIds, {
+              include24hChange: true,
+            });
+            marketsData = coinGeckoIds
+              .filter((id) => priceData[id] && priceData[id].usd > 0)
+              .map((id) => {
+                const data = priceData[id];
+                return {
+                  id,
+                  symbol: "",
+                  name: "",
+                  image: "",
+                  current_price: data.usd,
+                  price_change_percentage_24h: data.usd_24h_change || 0,
+                };
+              });
+          } catch (fallbackError) {
+            console.error("Failed to fetch price data:", fallbackError);
+            marketsData = [];
+          }
+        }
       }
+
+      // Create a map of coin ID to market data
+      const marketsMap = new Map(
+        marketsData.map((m) => [m.id, m])
+      );
 
       const prices = symbols.map((symbol) => {
         const upperSymbol = symbol.toUpperCase();
         const coinId = symbolToId[upperSymbol];
-        const data = coinId ? priceData![coinId] : null;
+        const marketData = coinId ? marketsMap.get(coinId) : null;
+
+        if (!marketData) {
+          return {
+            symbol: upperSymbol,
+            coinGeckoId: coinId || null,
+            name: upperSymbol,
+            type: "CRYPTO" as const,
+            currentPrice: 0,
+            priceChange24h: 0,
+            priceChangePercent24h: 0,
+            image: undefined,
+          };
+        }
 
         return {
           symbol: upperSymbol,
           coinGeckoId: coinId,
-          name: Object.entries(SYMBOL_TO_COINGECKO_ID).find(([s]) => s === upperSymbol)?.[1] || upperSymbol,
+          name: marketData.name || upperSymbol,
           type: "CRYPTO" as const,
-          currentPrice: data?.usd || 0,
-          priceChange24h: data?.usd_24h_change ? (data.usd * data.usd_24h_change) / 100 : 0,
-          priceChangePercent24h: data?.usd_24h_change || 0,
+          currentPrice: marketData.current_price || 0,
+          priceChange24h: marketData.current_price && marketData.price_change_percentage_24h
+            ? (marketData.current_price * marketData.price_change_percentage_24h) / 100
+            : 0,
+          priceChangePercent24h: marketData.price_change_percentage_24h || 0,
+          image: marketData.image || undefined,
         };
       });
 
-      return NextResponse.json({ prices, cached: !!cached });
+      return NextResponse.json({ prices });
     }
 
     // Stock prices via Finnhub
