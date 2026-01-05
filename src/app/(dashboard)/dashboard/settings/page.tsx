@@ -1,20 +1,8 @@
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getApiKeys } from "@/lib/queries";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BinanceConnect } from "@/components/settings/binance-connect";
 import { formatDateTime } from "@/lib/utils";
-
-async function getApiKeys(userId: string) {
-  return prisma.apiKey.findMany({
-    where: { userId },
-    select: {
-      id: true,
-      platform: true,
-      lastSync: true,
-      createdAt: true,
-    },
-  });
-}
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -122,4 +110,3 @@ export default async function SettingsPage() {
     </div>
   );
 }
-

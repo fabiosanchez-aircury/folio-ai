@@ -1,17 +1,7 @@
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getPortfolios } from "@/lib/queries";
 import { PortfolioList } from "@/components/portfolio/portfolio-list";
 import { CreatePortfolioButton } from "@/components/portfolio/create-portfolio-button";
-
-async function getPortfolios(userId: string) {
-  return prisma.portfolio.findMany({
-    where: { userId },
-    include: {
-      assets: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
-}
 
 export default async function PortfolioPage() {
   const session = await auth();
@@ -36,4 +26,3 @@ export default async function PortfolioPage() {
     </div>
   );
 }
-
