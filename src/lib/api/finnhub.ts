@@ -117,3 +117,25 @@ export async function getCryptoSymbols(apiKey: string, exchange: string = "binan
   return response.json();
 }
 
+interface SymbolSearchResult {
+  count: number;
+  result: Array<{
+    description: string;
+    displaySymbol: string;
+    symbol: string;
+    type: string;
+  }>;
+}
+
+export async function symbolSearch(query: string, apiKey: string): Promise<SymbolSearchResult> {
+  const response = await fetch(
+    `${FINNHUB_URL}/search?q=${encodeURIComponent(query)}&token=${apiKey}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to search symbols");
+  }
+
+  return response.json();
+}
+

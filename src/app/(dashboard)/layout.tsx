@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default async function DashboardLayout({
   children,
@@ -15,12 +16,14 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className="lg:pl-64">
-        <Header user={session.user} />
-        <main className="p-6">{children}</main>
+    <TooltipProvider delayDuration={0}>
+      <div className="min-h-screen bg-background">
+        <Sidebar />
+        <div className="lg:pl-64">
+          <Header user={session.user} />
+          <main className="p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

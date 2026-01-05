@@ -1,16 +1,13 @@
 import { auth } from "@/lib/auth";
-import { getPortfolioStats } from "@/lib/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency, formatPercent } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Wallet, PieChart, Newspaper, Activity } from "lucide-react";
+import { Wallet, Activity, Newspaper } from "lucide-react";
 import Link from "next/link";
+import { PortfolioStats } from "@/components/dashboard/portfolio-stats";
 
 export default async function DashboardPage() {
   const session = await auth();
 
   if (!session?.user) return null;
-
-  const stats = await getPortfolioStats(session.user.id);
 
   return (
     <div className="space-y-8">
@@ -24,70 +21,8 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(stats.totalValue)}
-            </div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              {stats.change >= 0 ? (
-                <TrendingUp className="mr-1 h-3 w-3 text-chart-green" />
-              ) : (
-                <TrendingDown className="mr-1 h-3 w-3 text-chart-red" />
-              )}
-              <span className={stats.change >= 0 ? "text-chart-green" : "text-chart-red"}>
-                {formatPercent(stats.changePercent)}
-              </span>
-              <span className="ml-1">from cost basis</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Portfolios</CardTitle>
-            <PieChart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.portfolioCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Active portfolios
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAssets}</div>
-            <p className="text-xs text-muted-foreground">
-              Across all portfolios
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">24h Change</CardTitle>
-            <Newspaper className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-chart-green">+0.00%</div>
-            <p className="text-xs text-muted-foreground">
-              Coming soon with live data
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Real-time Portfolio Stats */}
+      <PortfolioStats />
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

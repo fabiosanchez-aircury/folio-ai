@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/utils";
-import { ChevronDown, ChevronUp, Trash2, Edit, Plus } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatCurrency, formatPercent } from "@/lib/utils";
+import { ChevronDown, ChevronUp, Trash2, Edit, Plus, RefreshCw, TrendingUp, TrendingDown, Info } from "lucide-react";
 import { deletePortfolio } from "@/lib/actions/portfolio";
 import { AddAssetModal } from "./add-asset-modal";
 import { EditPortfolioModal } from "./edit-portfolio-modal";
@@ -13,16 +14,61 @@ import type { Asset, Portfolio } from "@prisma/client";
 
 type PortfolioWithAssets = Portfolio & { assets: Asset[] };
 
+interface PortfolioWithValues {
+  id: string;
+  name: string;
+  totalValue: number;
+  totalCost: number;
+  profitLoss: number;
+  profitLossPercent: number;
+  assets: Array<{
+    id: string;
+    symbol: string;
+    name: string | null;
+    type: string;
+    quantity: number;
+    avgPrice: number;
+    currentPrice: number;
+    currentValue: number;
+    profitLoss: number;
+    profitLossPercent: number;
+  }>;
+}
+
 interface PortfolioListProps {
   portfolios: PortfolioWithAssets[];
 }
 
-export function PortfolioList({ portfolios }: PortfolioListProps) {
+export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
-    new Set(portfolios.slice(0, 1).map((p) => p.id))
+    new Set(initialPortfolios.slice(0, 1).map((p) => p.id))
   );
   const [editingPortfolio, setEditingPortfolio] = useState<PortfolioWithAssets | null>(null);
   const [addingAssetTo, setAddingAssetTo] = useState<string | null>(null);
+
+  const [portfoliosWithValues, setPortfoliosWithValues] = useState<PortfolioWithValues[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchValues = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/portfolio/values");
+      if (response.ok) {
+        const data = await response.json();
+        setPortfoliosWithValues(data.portfolios);
+      }
+    } catch (error) {
+      console.error("Failed to fetch portfolio values:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchValues();
+    const interval = setInterval(fetchValues, 60000); // Refresh every minute
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
@@ -42,7 +88,7 @@ export function PortfolioList({ portfolios }: PortfolioListProps) {
     }
   };
 
-  if (portfolios.length === 0) {
+  if (initialPortfolios.length === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -57,15 +103,39 @@ export function PortfolioList({ portfolios }: PortfolioListProps) {
     );
   }
 
+  // Merge initial data with live values
+  const displayPortfolios = initialPortfolios.map((portfolio) => {
+    const liveData = portfoliosWithValues.find((p) => p.id === portfolio.id);
+    return { portfolio, liveData };
+  });
+
   return (
     <>
+      <div className="flex justify-end mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={fetchValues}
+          disabled={isLoading}
+          className="text-muted-foreground"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+          Refresh prices
+        </Button>
+      </div>
+
       <div className="space-y-4">
-        {portfolios.map((portfolio) => {
+        {displayPortfolios.map(({ portfolio, liveData }) => {
           const isExpanded = expandedIds.has(portfolio.id);
-          const totalValue = portfolio.assets.reduce(
+
+          // Use live data if available, otherwise calculate from avgPrice
+          const totalValue = liveData?.totalValue ?? portfolio.assets.reduce(
             (acc, asset) => acc + Number(asset.quantity) * Number(asset.avgPrice),
             0
           );
+          const totalCost = liveData?.totalCost ?? totalValue;
+          const profitLoss = liveData?.profitLoss ?? 0;
+          const profitLossPercent = liveData?.profitLossPercent ?? 0;
 
           return (
             <Card key={portfolio.id}>
@@ -92,9 +162,25 @@ export function PortfolioList({ portfolios }: PortfolioListProps) {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="text-lg font-semibold">
-                        {formatCurrency(totalValue)}
+                        {isLoading ? (
+                          <span className="inline-block h-6 w-20 bg-muted animate-pulse rounded" />
+                        ) : (
+                          formatCurrency(totalValue)
+                        )}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      {!isLoading && liveData && (
+                        <div className="flex items-center justify-end gap-1 text-sm">
+                          {profitLoss >= 0 ? (
+                            <TrendingUp className="h-3 w-3 text-chart-green" />
+                          ) : (
+                            <TrendingDown className="h-3 w-3 text-chart-red" />
+                          )}
+                          <span className={profitLoss >= 0 ? "text-chart-green" : "text-chart-red"}>
+                            {formatPercent(profitLossPercent)}
+                          </span>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
                         {portfolio.assets.length} assets
                       </p>
                     </div>
@@ -140,17 +226,46 @@ export function PortfolioList({ portfolios }: PortfolioListProps) {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="grid grid-cols-6 gap-4 text-sm font-medium text-muted-foreground px-2 pb-2 border-b border-border">
+                      <div className="grid grid-cols-7 gap-4 text-sm font-medium text-muted-foreground px-2 pb-2 border-b border-border">
                         <div>Symbol</div>
                         <div>Type</div>
                         <div className="text-right">Quantity</div>
                         <div className="text-right">Avg Price</div>
-                        <div className="text-right">Value</div>
+                        <div className="text-right">Current</div>
+                        <div className="text-right">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="flex items-center justify-end gap-1">
+                                  P/L
+                                  <Info className="h-3 w-3" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[250px]">
+                                <div className="text-left space-y-1">
+                                  <p className="font-medium">Profit/Loss (P/L)</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Shows your gain or loss compared to your average purchase price.
+                                    Calculated as: (Current Price - Avg Price) × Quantity
+                                  </p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div></div>
                       </div>
-                      {portfolio.assets.map((asset) => (
-                        <AssetRow key={asset.id} asset={asset} />
-                      ))}
+                      {portfolio.assets.map((asset) => {
+                        const liveAsset = liveData?.assets.find((a) => a.id === asset.id);
+                        return (
+                          <AssetRow
+                            key={asset.id}
+                            asset={asset}
+                            liveData={liveAsset}
+                            isLoading={isLoading}
+                          />
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
@@ -176,4 +291,3 @@ export function PortfolioList({ portfolios }: PortfolioListProps) {
     </>
   );
 }
-
