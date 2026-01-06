@@ -17,18 +17,12 @@ export interface PortfolioAsset {
   name: string | null;
   type: "CRYPTO" | "STOCK";
   quantity: number;
-  avgPrice: number;
   currentPrice?: number;
   currentValue?: number;
-  profitLoss?: number;
-  profitLossPercent?: number;
 }
 
 export interface PortfolioSummary {
   totalValue: number;
-  totalCost: number;
-  totalProfitLoss: number;
-  totalProfitLossPercent: number;
   assets: PortfolioAsset[];
 }
 

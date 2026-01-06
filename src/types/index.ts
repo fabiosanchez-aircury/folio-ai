@@ -25,7 +25,6 @@ export interface Asset {
   name?: string;
   type: AssetType;
   quantity: number;
-  avgPrice: number;
   currentPrice?: number;
   portfolioId: string;
   createdAt: Date;

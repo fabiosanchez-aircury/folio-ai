@@ -130,13 +130,11 @@ export async function syncBinancePortfolio() {
       },
       update: {
         quantity: balance.total,
-        avgPrice: price,
       },
       create: {
         symbol: balance.asset,
         type: "CRYPTO",
         quantity: balance.total,
-        avgPrice: price,
         portfolioId: portfolio.id,
       },
     });

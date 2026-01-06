@@ -96,7 +96,6 @@ model Asset {
   name        String?
   type        AssetType
   quantity    Decimal   @db.Decimal(18, 8)
-  avgPrice    Decimal   @map("avg_price") @db.Decimal(18, 8)
   portfolioId String    @map("portfolio_id")
   portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now()) @map("created_at")

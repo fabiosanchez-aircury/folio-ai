@@ -15,7 +15,6 @@ const assetSchema = z.object({
   name: z.string().max(100).optional(),
   type: z.enum(["CRYPTO", "STOCK"]),
   quantity: z.number().positive("Quantity must be positive"),
-  avgPrice: z.number().positive("Price must be positive"),
   portfolioId: z.string(),
 });
 
@@ -111,18 +110,14 @@ export async function addAsset(data: z.infer<typeof assetSchema>) {
   });
 
   if (existingAsset) {
-    // Update existing asset (average the price)
+    // Update existing asset quantity (sum quantities)
     const totalQuantity = Number(existingAsset.quantity) + validated.quantity;
-    const totalCost =
-      Number(existingAsset.quantity) * Number(existingAsset.avgPrice) +
-      validated.quantity * validated.avgPrice;
-    const newAvgPrice = totalCost / totalQuantity;
 
     const updated = await prisma.asset.update({
       where: { id: existingAsset.id },
       data: {
         quantity: totalQuantity,
-        avgPrice: newAvgPrice,
+        name: validated.name || existingAsset.name,
       },
     });
 
@@ -145,7 +140,7 @@ export async function addAsset(data: z.infer<typeof assetSchema>) {
 
 export async function updateAsset(
   id: string,
-  data: { quantity: number; avgPrice: number; name?: string }
+  data: { quantity: number; name?: string }
 ) {
   const session = await getSession();
 
@@ -162,7 +157,6 @@ export async function updateAsset(
     where: { id },
     data: {
       quantity: data.quantity,
-      avgPrice: data.avgPrice,
       name: data.name,
     },
   });

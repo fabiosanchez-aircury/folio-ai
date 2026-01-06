@@ -41,14 +41,11 @@ export async function POST(request: Request) {
           name: a.name || undefined,
           type: a.type as "CRYPTO" | "STOCK",
           quantity: Number(a.quantity),
-          avgPrice: Number(a.avgPrice),
         }))
       );
 
-      const totalValue = allAssets.reduce(
-        (acc, a) => acc + a.quantity * a.avgPrice,
-        0
-      );
+      // Total value will be calculated with current prices if needed
+      const totalValue = 0;
 
       portfolioContext = {
         assets: allAssets,

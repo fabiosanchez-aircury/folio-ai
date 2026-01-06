@@ -9,20 +9,14 @@ interface PortfolioWithValues {
   id: string;
   name: string;
   totalValue: number;
-  totalCost: number;
-  profitLoss: number;
-  profitLossPercent: number;
   assets: Array<{
     id: string;
     symbol: string;
     name: string | null;
     type: string;
     quantity: number;
-    avgPrice: number;
     currentPrice: number;
     currentValue: number;
-    profitLoss: number;
-    profitLossPercent: number;
   }>;
 }
 
@@ -118,24 +112,17 @@ export async function GET() {
     // Calculate portfolio values
     const portfoliosWithValues: PortfolioWithValues[] = portfolios.map((portfolio) => {
       let totalValue = 0;
-      let totalCost = 0;
 
       const assetsWithValues = portfolio.assets.map((asset) => {
         const quantity = Number(asset.quantity);
-        const avgPrice = Number(asset.avgPrice);
-        const cost = quantity * avgPrice;
 
         const currentPrice =
           asset.type === "CRYPTO"
-            ? cryptoPrices[asset.symbol] || avgPrice
-            : stockPrices[asset.symbol] || avgPrice;
+            ? cryptoPrices[asset.symbol] || 0
+            : stockPrices[asset.symbol] || 0;
 
         const currentValue = quantity * currentPrice;
-        const profitLoss = currentValue - cost;
-        const profitLossPercent = cost > 0 ? (profitLoss / cost) * 100 : 0;
-
         totalValue += currentValue;
-        totalCost += cost;
 
         return {
           id: asset.id,
@@ -143,42 +130,26 @@ export async function GET() {
           name: asset.name,
           type: asset.type,
           quantity,
-          avgPrice,
           currentPrice,
           currentValue,
-          profitLoss,
-          profitLossPercent,
         };
       });
-
-      const portfolioProfitLoss = totalValue - totalCost;
-      const portfolioProfitLossPercent =
-        totalCost > 0 ? (portfolioProfitLoss / totalCost) * 100 : 0;
 
       return {
         id: portfolio.id,
         name: portfolio.name,
         totalValue,
-        totalCost,
-        profitLoss: portfolioProfitLoss,
-        profitLossPercent: portfolioProfitLossPercent,
         assets: assetsWithValues,
       };
     });
 
     // Calculate totals
     const totalValue = portfoliosWithValues.reduce((sum, p) => sum + p.totalValue, 0);
-    const totalCost = portfoliosWithValues.reduce((sum, p) => sum + p.totalCost, 0);
-    const totalProfitLoss = totalValue - totalCost;
-    const totalProfitLossPercent = totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0;
 
     return NextResponse.json({
       portfolios: portfoliosWithValues,
       summary: {
         totalValue,
-        totalCost,
-        totalProfitLoss,
-        totalProfitLossPercent,
         portfolioCount: portfolios.length,
         assetCount: portfolios.reduce((sum, p) => sum + p.assets.length, 0),
       },

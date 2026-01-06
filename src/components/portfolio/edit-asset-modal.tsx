@@ -16,7 +16,6 @@ interface EditAssetModalProps {
 export function EditAssetModal({ asset, onClose }: EditAssetModalProps) {
   const [name, setName] = useState(asset.name || "");
   const [quantity, setQuantity] = useState(String(asset.quantity));
-  const [avgPrice, setAvgPrice] = useState(String(asset.avgPrice));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -29,7 +28,6 @@ export function EditAssetModal({ asset, onClose }: EditAssetModalProps) {
       await updateAsset(asset.id, {
         name: name || undefined,
         quantity: parseFloat(quantity),
-        avgPrice: parseFloat(avgPrice),
       });
       onClose();
     } catch (err) {
@@ -67,34 +65,18 @@ export function EditAssetModal({ asset, onClose }: EditAssetModalProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity</Label>
-              <Input
-                id="quantity"
-                type="number"
-                step="any"
-                min="0"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="avgPrice">Avg Price (USD)</Label>
-              <Input
-                id="avgPrice"
-                type="number"
-                step="any"
-                min="0"
-                value={avgPrice}
-                onChange={(e) => setAvgPrice(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="quantity">Quantity</Label>
+            <Input
+              id="quantity"
+              type="number"
+              step="any"
+              min="0"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              required
+              disabled={isLoading}
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

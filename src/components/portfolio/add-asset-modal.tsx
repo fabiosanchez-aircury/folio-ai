@@ -35,7 +35,6 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
 
   const [inputMode, setInputMode] = useState<InputMode>("quantity");
   const [quantity, setQuantity] = useState("");
-  const [avgPrice, setAvgPrice] = useState("");
   const [totalValue, setTotalValue] = useState("");
 
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
@@ -111,10 +110,6 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
         if (prices.length > 0 && prices[0].currentPrice > 0) {
           setCurrentPrice(prices[0].currentPrice);
           setPriceChange24h(prices[0].priceChangePercent24h);
-          // Pre-fill avg price with current price if empty
-          if (!avgPrice) {
-            setAvgPrice(prices[0].currentPrice.toString());
-          }
         } else {
           // Price not available (coin may not have market data in CoinGecko)
           setCurrentPrice(null);
@@ -130,7 +125,7 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
     };
 
     fetchPrice();
-  }, [selectedAsset, avgPrice]);
+  }, [selectedAsset]);
 
   // Calculate quantity from value or vice versa
   useEffect(() => {
@@ -164,14 +159,12 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
 
     try {
       const finalQuantity = parseFloat(quantity);
-      const finalAvgPrice = parseFloat(avgPrice) || currentPrice || 0;
 
       await addAsset({
         symbol: selectedAsset.symbol,
         name: selectedAsset.name,
         type: selectedAsset.type,
         quantity: finalQuantity,
-        avgPrice: finalAvgPrice,
         portfolioId,
       });
       onClose();
@@ -455,20 +448,6 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="avgPrice">Avg Price (USD)</Label>
-                    <Input
-                      id="avgPrice"
-                      type="number"
-                      step="any"
-                      min="0"
-                      value={avgPrice}
-                      onChange={(e) => setAvgPrice(e.target.value)}
-                      placeholder={currentPrice?.toString() || "0"}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -509,18 +488,18 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
                       <span className="text-muted-foreground">Quantity:</span>
                       <span>{parseFloat(quantity).toFixed(8)} {selectedAsset.symbol}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Avg Price:</span>
-                      <span>{formatCurrency(parseFloat(avgPrice) || currentPrice || 0)}</span>
-                    </div>
-                    <div className="flex justify-between font-medium">
-                      <span>Total Cost:</span>
-                      <span>
-                        {formatCurrency(
-                          parseFloat(quantity) * (parseFloat(avgPrice) || currentPrice || 0)
-                        )}
-                      </span>
-                    </div>
+                    {currentPrice && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Current Price:</span>
+                        <span>{formatCurrency(currentPrice)}</span>
+                      </div>
+                    )}
+                    {currentPrice && (
+                      <div className="flex justify-between font-medium">
+                        <span>Current Value:</span>
+                        <span>{formatCurrency(parseFloat(quantity) * currentPrice)}</span>
+                      </div>
+                    )}
                     {currentPrice && (
                       <div className="flex justify-between font-medium text-primary">
                         <span>Current Value:</span>

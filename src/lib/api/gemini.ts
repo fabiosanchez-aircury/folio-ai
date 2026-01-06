@@ -9,7 +9,6 @@ export interface PortfolioContext {
     name?: string;
     type: "CRYPTO" | "STOCK";
     quantity: number;
-    avgPrice: number;
     currentPrice?: number;
   }[];
   totalValue: number;
@@ -27,9 +26,7 @@ Portfolio:
 ${context.assets
   .map(
     (a) =>
-      `- ${a.symbol}${a.name ? ` (${a.name})` : ""}: ${a.quantity} units at $${
-        a.avgPrice
-      } avg (${a.type})`
+      `- ${a.symbol}${a.name ? ` (${a.name})` : ""}: ${a.quantity} units (${a.type})`
   )
   .join("\n")}
 
@@ -104,7 +101,7 @@ ${
 ${portfolioContext.assets
   .map(
     (a) =>
-      `- ${a.symbol}: ${a.quantity} units at $${a.avgPrice} avg (${a.type})`
+      `- ${a.symbol}: ${a.quantity} units (${a.type})`
   )
   .join("\n")}
 Total Value: $${portfolioContext.totalValue.toLocaleString()}`

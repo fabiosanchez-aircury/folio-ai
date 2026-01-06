@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatCurrency, formatPercent } from "@/lib/utils";
-import { ChevronDown, ChevronUp, Trash2, Edit, Plus, RefreshCw, TrendingUp, TrendingDown, Info } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import { ChevronDown, ChevronUp, Trash2, Edit, Plus, RefreshCw } from "lucide-react";
 import { deletePortfolio } from "@/lib/actions/portfolio";
 import { AddAssetModal } from "./add-asset-modal";
 import { EditPortfolioModal } from "./edit-portfolio-modal";
@@ -19,20 +19,14 @@ interface PortfolioWithValues {
   id: string;
   name: string;
   totalValue: number;
-  totalCost: number;
-  profitLoss: number;
-  profitLossPercent: number;
   assets: Array<{
     id: string;
     symbol: string;
     name: string | null;
     type: string;
     quantity: number;
-    avgPrice: number;
     currentPrice: number;
     currentValue: number;
-    profitLoss: number;
-    profitLossPercent: number;
   }>;
 }
 
@@ -126,14 +120,8 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
         {displayPortfolios.map(({ portfolio, liveData }) => {
           const isExpanded = expandedIds.has(portfolio.id);
 
-          // Use live data if available, otherwise calculate from avgPrice
-          const totalValue = liveData?.totalValue ?? portfolio.assets.reduce(
-            (acc, asset) => acc + Number(asset.quantity) * Number(asset.avgPrice),
-            0
-          );
-          const totalCost = liveData?.totalCost ?? totalValue;
-          const profitLoss = liveData?.profitLoss ?? 0;
-          const profitLossPercent = liveData?.profitLossPercent ?? 0;
+          // Use live data if available
+          const totalValue = liveData?.totalValue ?? 0;
 
           return (
             <Card key={portfolio.id}>
@@ -166,18 +154,6 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
                           formatCurrency(totalValue)
                         )}
                       </p>
-                      {!isLoading && liveData && (
-                        <div className="flex items-center justify-end gap-1 text-sm">
-                          {profitLoss >= 0 ? (
-                            <TrendingUp className="h-3 w-3 text-chart-green" />
-                          ) : (
-                            <TrendingDown className="h-3 w-3 text-chart-red" />
-                          )}
-                          <span className={profitLoss >= 0 ? "text-chart-green" : "text-chart-red"}>
-                            {formatPercent(profitLossPercent)}
-                          </span>
-                        </div>
-                      )}
                       <p className="text-xs text-muted-foreground">
                         {portfolio.assets.length} assets
                       </p>
@@ -224,34 +200,11 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="grid grid-cols-7 gap-4 text-sm font-medium text-muted-foreground px-2 pb-2 border-b border-border">
+                      <div className="grid grid-cols-4 gap-4 text-sm font-medium text-muted-foreground px-2 pb-2 border-b border-border">
                         <div>Symbol</div>
                         <div>Type</div>
                         <div className="text-right">Quantity</div>
-                        <div className="text-right">Avg Price</div>
                         <div className="text-right">Current</div>
-                        <div className="text-right">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="flex items-center justify-end gap-1">
-                                  P/L
-                                  <Info className="h-3 w-3" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-[250px]">
-                                <div className="text-left space-y-1">
-                                  <p className="font-medium">Profit/Loss (P/L)</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Shows your gain or loss compared to your average purchase price.
-                                    Calculated as: (Current Price - Avg Price) × Quantity
-                                  </p>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div></div>
                       </div>
                       {portfolio.assets.map((asset) => {
                         const liveAsset = liveData?.assets.find((a) => a.id === asset.id);
