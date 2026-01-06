@@ -10,6 +10,7 @@ import { deletePortfolio } from "@/lib/actions/portfolio";
 import { AddAssetModal } from "./add-asset-modal";
 import { EditPortfolioModal } from "./edit-portfolio-modal";
 import { AssetRow } from "./asset-row";
+import { OrderList } from "./order-list";
 import type { Asset, Portfolio } from "@prisma/client";
 import api from "@/services/api";
 
@@ -220,6 +221,13 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
                     </div>
                   )}
                 </CardContent>
+              )}
+
+              {/* Orders Section */}
+              {isExpanded && (
+                <div className="px-6 pb-6">
+                  <OrderList portfolioId={portfolio.id} />
+                </div>
               )}
             </Card>
           );
