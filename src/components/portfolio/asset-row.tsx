@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { Trash2, Edit } from "lucide-react";
@@ -25,6 +26,7 @@ interface AssetRowProps {
 }
 
 export function AssetRow({ asset, liveData, isLoading }: AssetRowProps) {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
 
   const quantity = Number(asset.quantity);
@@ -34,6 +36,7 @@ export function AssetRow({ asset, liveData, isLoading }: AssetRowProps) {
   const handleDelete = async () => {
     if (confirm("Are you sure you want to delete this asset?")) {
       await deleteAsset(asset.id);
+      router.refresh();
     }
   };
 
@@ -69,7 +72,13 @@ export function AssetRow({ asset, liveData, isLoading }: AssetRowProps) {
       </div>
 
       {isEditing && (
-        <EditAssetModal asset={asset} onClose={() => setIsEditing(false)} />
+        <EditAssetModal 
+          asset={asset} 
+          onClose={() => {
+            setIsEditing(false);
+            router.refresh();
+          }} 
+        />
       )}
     </>
   );

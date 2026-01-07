@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { Trash2, Plus } from "lucide-react";
@@ -13,6 +14,7 @@ interface OrderListProps {
 }
 
 export function OrderList({ portfolioId }: OrderListProps) {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingOrder, setIsAddingOrder] = useState(false);
@@ -37,6 +39,7 @@ export function OrderList({ portfolioId }: OrderListProps) {
     if (confirm("Are you sure you want to delete this order?")) {
       try {
         await deleteOrder(orderId);
+        router.refresh();
         await fetchOrders();
       } catch (error) {
         console.error("Failed to delete order:", error);
@@ -107,11 +110,10 @@ export function OrderList({ portfolioId }: OrderListProps) {
                   </div>
                   <div>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        order.orderType === "BUY"
+                      className={`text-xs px-2 py-0.5 rounded-full ${order.orderType === "BUY"
                           ? "bg-chart-green/20 text-chart-green"
                           : "bg-chart-red/20 text-chart-red"
-                      }`}
+                        }`}
                     >
                       {order.orderType}
                     </span>
@@ -154,6 +156,7 @@ export function OrderList({ portfolioId }: OrderListProps) {
           portfolioId={portfolioId}
           onClose={() => {
             setIsAddingOrder(false);
+            router.refresh();
             fetchOrders();
           }}
         />

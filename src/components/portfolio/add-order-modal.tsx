@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,7 @@ interface AddOrderModalProps {
 }
 
 export function AddOrderModal({ portfolioId, onClose }: AddOrderModalProps) {
+  const router = useRouter();
   const [assetType, setAssetType] = useState<AssetType>("CRYPTO");
   const [orderType, setOrderType] = useState<OrderType>("BUY");
   const [searchQuery, setSearchQuery] = useState("");
@@ -160,6 +162,7 @@ export function AddOrderModal({ portfolioId, onClose }: AddOrderModalProps) {
         executedAt: new Date(executedAt),
         notes: notes || undefined,
       });
+      router.refresh();
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create order");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,7 @@ interface EditAssetModalProps {
 }
 
 export function EditAssetModal({ asset, onClose }: EditAssetModalProps) {
+  const router = useRouter();
   const [name, setName] = useState(asset.name || "");
   const [quantity, setQuantity] = useState(String(asset.quantity));
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +31,7 @@ export function EditAssetModal({ asset, onClose }: EditAssetModalProps) {
         name: name || undefined,
         quantity: parseFloat(quantity),
       });
+      router.refresh();
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update asset");

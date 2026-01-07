@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ interface AddAssetModalProps {
 type InputMode = "quantity" | "value";
 
 export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
+  const router = useRouter();
   const [assetType, setAssetType] = useState<"CRYPTO" | "STOCK">("CRYPTO");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -167,6 +169,9 @@ export function AddAssetModal({ portfolioId, onClose }: AddAssetModalProps) {
         quantity: finalQuantity,
         portfolioId,
       });
+      
+      // Refresh the page data to show the new asset
+      router.refresh();
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add asset");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -36,6 +37,8 @@ interface PortfolioListProps {
 }
 
 export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListProps) {
+  const router = useRouter();
+  const [portfolios, setPortfolios] = useState<PortfolioWithAssets[]>(initialPortfolios);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     new Set(initialPortfolios.slice(0, 1).map((p) => p.id))
   );
@@ -44,6 +47,11 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
 
   const [portfoliosWithValues, setPortfoliosWithValues] = useState<PortfolioWithValues[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Update portfolios when initialPortfolios changes (after router.refresh())
+  useEffect(() => {
+    setPortfolios(initialPortfolios);
+  }, [initialPortfolios]);
 
   const fetchValues = async () => {
     setIsLoading(true);
@@ -78,10 +86,17 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this portfolio?")) {
       await deletePortfolio(id);
+      router.refresh();
     }
   };
 
-  if (initialPortfolios.length === 0) {
+  const handleAssetAdded = () => {
+    // Refresh both server data and values
+    router.refresh();
+    fetchValues();
+  };
+
+  if (portfolios.length === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -96,8 +111,8 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
     );
   }
 
-  // Merge initial data with live values
-  const displayPortfolios = initialPortfolios.map((portfolio) => {
+  // Merge portfolios data with live values
+  const displayPortfolios = portfolios.map((portfolio) => {
     const liveData = portfoliosWithValues.find((p) => p.id === portfolio.id);
     return { portfolio, liveData };
   });
@@ -244,7 +259,10 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
       {addingAssetTo && (
         <AddAssetModal
           portfolioId={addingAssetTo}
-          onClose={() => setAddingAssetTo(null)}
+          onClose={() => {
+            setAddingAssetTo(null);
+            handleAssetAdded();
+          }}
         />
       )}
     </>
