@@ -12,15 +12,6 @@ export const coinGeckoClient = axios.create({
   },
 });
 
-/**
- * Alpha Vantage API Client
- * Free tier: 5 calls/minute, 500 calls/day
- */
-export const alphaVantageClient = axios.create({
-  baseURL: "https://www.alphavantage.co/query",
-  timeout: 10000,
-  params: {}, // Will be set per request
-});
 
 /**
  * Finnhub API Client
@@ -42,4 +33,5 @@ export const binanceClient = axios.create({
     "Content-Type": "application/json",
   },
 });
+
 

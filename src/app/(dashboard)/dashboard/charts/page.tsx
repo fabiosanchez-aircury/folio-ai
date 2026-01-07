@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PriceChart, ChartType } from "@/components/charts";
 import { ChartService, TimeRange, ChartTicker, ChartDataPoint } from "@/services";
 import { Search, CandlestickChart, LineChartIcon, AreaChart, Loader2, RefreshCw } from "lucide-react";
@@ -17,9 +18,11 @@ const chartTypes: { type: ChartType; icon: React.ReactNode; label: string }[] = 
 
 const timeRanges: TimeRange[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"];
 
-const popularSymbols = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "AVAX"];
+const popularCryptos = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "AVAX"];
+const popularStocks = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "NFLX"];
 
 export default function ChartsPage() {
+  const [assetType, setAssetType] = useState<"CRYPTO" | "STOCK">("CRYPTO");
   const [symbol, setSymbol] = useState("BTC");
   const [searchInput, setSearchInput] = useState("");
   const [chartType, setChartType] = useState<ChartType>("candlestick");
@@ -30,12 +33,21 @@ export default function ChartsPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
+  // Update default symbol when asset type changes
+  useEffect(() => {
+    if (assetType === "CRYPTO") {
+      setSymbol("BTC");
+    } else {
+      setSymbol("AAPL");
+    }
+  }, [assetType]);
+
   const fetchChartData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = await ChartService.getChartData(symbol, timeRange);
+      const result = await ChartService.getChartData(symbol, timeRange, assetType);
       setData(result.data);
       setTicker(result.ticker);
       setLastUpdate(new Date());
@@ -47,7 +59,7 @@ export default function ChartsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [symbol, timeRange]);
+  }, [symbol, timeRange, assetType]);
 
   useEffect(() => {
     fetchChartData();
@@ -84,13 +96,39 @@ export default function ChartsPage() {
       <div>
         <h1 className="text-3xl font-bold">Charts</h1>
         <p className="text-muted-foreground mt-1">
-          Real-time crypto price charts powered by Binance
+          Real-time price charts for crypto and stocks
         </p>
+      </div>
+
+      {/* Asset Type Selector */}
+      <div className="flex gap-2">
+        <Button
+          variant={assetType === "CRYPTO" ? "default" : "outline"}
+          onClick={() => setAssetType("CRYPTO")}
+        >
+          Crypto
+        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <Button
+                variant={assetType === "STOCK" ? "default" : "outline"}
+                onClick={() => setAssetType("STOCK")}
+                disabled
+              >
+                Stocks
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>A better API is needed to track stocks</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Popular Symbols */}
       <div className="flex flex-wrap gap-2">
-        {popularSymbols.map((sym) => (
+        {(assetType === "CRYPTO" ? popularCryptos : popularStocks).map((sym) => (
           <Button
             key={sym}
             variant={symbol === sym ? "default" : "outline"}
@@ -110,7 +148,7 @@ export default function ChartsPage() {
             <Input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search crypto (BTC, ETH, SOL...)"
+              placeholder={assetType === "CRYPTO" ? "Search crypto (BTC, ETH, SOL...)" : "Search stocks (AAPL, MSFT, GOOGL...)"}
               className="pl-9"
             />
           </div>
@@ -139,7 +177,7 @@ export default function ChartsPage() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <CardTitle className="flex items-center gap-2">
-                <span className="text-2xl">{symbol}/USDT</span>
+                <span className="text-2xl">{symbol}{assetType === "CRYPTO" ? "/USDT" : ""}</span>
                 {ticker && (
                   <span className={`text-lg font-semibold ${ticker.changePercent >= 0 ? "text-green-500" : "text-red-500"}`}>
                     {ticker.changePercent >= 0 ? "+" : ""}{ticker.changePercent.toFixed(2)}%
@@ -254,7 +292,9 @@ export default function ChartsPage() {
       </div>
 
       <p className="text-sm text-muted-foreground text-center">
-        Data provided by Binance • Auto-refreshes every 30 seconds
+        {assetType === "CRYPTO" 
+          ? "Data provided by Binance • Auto-refreshes every 30 seconds"
+          : "Data provided by Finnhub • Auto-refreshes every 30 seconds"}
       </p>
     </div>
   );

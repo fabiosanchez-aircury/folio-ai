@@ -58,7 +58,7 @@ Create a `.env` file with:
 
 ```env
 FINNHUB_API_KEY=your_key
-ALPHA_VANTAGE_API_KEY=your_key
+FINNHUB_API_KEY=your_key
 GOOGLE_GENERATIVE_AI_API_KEY=your_key
 GOOGLE_CLIENT_ID=your_id        # Optional: for Google OAuth
 GOOGLE_CLIENT_SECRET=your_secret

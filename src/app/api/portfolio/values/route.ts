@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCoinsPrice, symbolToCoinGeckoId } from "@/lib/api/coingecko";
-import { getStockQuote } from "@/lib/api/alphavantage";
+import { getQuote } from "@/lib/api/finnhub";
 import { cache, CACHE_TTL } from "@/lib/redis";
 
 interface PortfolioWithValues {
@@ -83,9 +83,9 @@ export async function GET() {
       }
     }
 
-    // Fetch stock prices from Alpha Vantage
+    // Fetch stock prices from Finnhub
     const stockPrices: Record<string, number> = {};
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
+    const apiKey = process.env.FINNHUB_API_KEY;
 
     if (stockSymbols.size > 0 && apiKey) {
       await Promise.all(
@@ -95,7 +95,7 @@ export async function GET() {
 
           if (price === null) {
             try {
-              const quote = await getStockQuote(symbol, apiKey);
+              const quote = await getQuote(symbol, apiKey);
               price = quote.price || 0;
               await cache.set(cacheKey, price, CACHE_TTL.PRICE);
             } catch (error) {

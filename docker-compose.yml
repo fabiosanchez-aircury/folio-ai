@@ -21,7 +21,6 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       # External APIs (get free keys from their websites)
       - FINNHUB_API_KEY=${FINNHUB_API_KEY:-}
-      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY:-}
       - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY:-}
     depends_on:
       postgres:

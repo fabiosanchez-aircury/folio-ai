@@ -106,6 +106,7 @@ export async function getQuote(symbol: string, apiKey: string) {
   const data = response.data;
 
   return {
+    symbol,
     price: data.c,
     change: data.d,
     changePercent: data.dp,
@@ -143,4 +144,124 @@ export async function symbolSearch(
   });
 
   return response.data;
+}
+
+interface FinnhubCandle {
+  c: number[]; // Close prices
+  h: number[]; // High prices
+  l: number[]; // Low prices
+  o: number[]; // Open prices
+  s: string; // Status
+  t: number[]; // Timestamps
+  v: number[]; // Volumes
+}
+
+/**
+ * Get historical stock candle data
+ * @param symbol Stock symbol
+ * @param apiKey Finnhub API key
+ * @param resolution Resolution: 1, 5, 15, 30, 60, D, W, M
+ * @param from Unix timestamp (start)
+ * @param to Unix timestamp (end)
+ */
+export async function getStockCandles(
+  symbol: string,
+  apiKey: string,
+  resolution: string = "D",
+  from?: number,
+  to?: number
+) {
+  const now = Math.floor(Date.now() / 1000);
+  const defaultFrom = now - 90 * 24 * 60 * 60; // 90 days ago
+
+  const response = await finnhubClient.get<FinnhubCandle>("/stock/candle", {
+    params: {
+      symbol,
+      resolution,
+      from: from || defaultFrom,
+      to: to || now,
+      token: apiKey,
+    },
+  });
+
+  const data = response.data;
+
+  if (data.s !== "ok" || !data.t || data.t.length === 0) {
+    throw new Error("No data available for symbol");
+  }
+
+  return data.t.map((timestamp, index) => ({
+    time: timestamp,
+    open: data.o[index],
+    high: data.h[index],
+    low: data.l[index],
+    close: data.c[index],
+    volume: data.v[index],
+  }));
+}
+
+/**
+ * Get company profile/info
+ */
+export async function getCompanyProfile(symbol: string, apiKey: string) {
+  const response = await finnhubClient.get<{
+    name: string;
+    ticker: string;
+    exchange: string;
+    finnhubIndustry: string;
+    weburl: string;
+    logo: string;
+  }>("/stock/profile2", {
+    params: {
+      symbol,
+      token: apiKey,
+    },
+  });
+
+  return response.data;
+}
+
+/**
+ * Map time range to Finnhub resolution and calculate from/to timestamps
+ */
+export function mapTimeRangeToFinnhub(timeRange: string): {
+  resolution: string;
+  from: number;
+  to: number;
+} {
+  const to = Math.floor(Date.now() / 1000);
+  let from: number;
+  let resolution: string;
+
+  switch (timeRange) {
+    case "1D":
+      from = to - 1 * 24 * 60 * 60; // 1 day
+      resolution = "15"; // 15 minutes
+      break;
+    case "1W":
+      from = to - 7 * 24 * 60 * 60; // 7 days
+      resolution = "60"; // 1 hour
+      break;
+    case "1M":
+      from = to - 30 * 24 * 60 * 60; // 30 days
+      resolution = "D"; // Daily
+      break;
+    case "3M":
+      from = to - 90 * 24 * 60 * 60; // 90 days
+      resolution = "D"; // Daily
+      break;
+    case "1Y":
+      from = to - 365 * 24 * 60 * 60; // 365 days
+      resolution = "D"; // Daily
+      break;
+    case "ALL":
+      from = to - 5 * 365 * 24 * 60 * 60; // 5 years
+      resolution = "W"; // Weekly
+      break;
+    default:
+      from = to - 90 * 24 * 60 * 60;
+      resolution = "D";
+  }
+
+  return { resolution, from, to };
 }

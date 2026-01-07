@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStockQuote, getStockHistory } from "@/lib/api/alphavantage";
+import { getQuote, getStockCandles, mapTimeRangeToFinnhub } from "@/lib/api/finnhub";
 import { getBinancePrice, getBinanceKlines } from "@/lib/api/binance";
 import { cache, cacheKey, CACHE_TTL } from "@/lib/redis";
 
@@ -56,25 +56,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ symbol, price, type: "CRYPTO" });
     }
 
-    // Stock data from Alpha Vantage
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
+    // Stock data from Finnhub
+    const apiKey = process.env.FINNHUB_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Alpha Vantage API key not configured" },
+        { error: "Finnhub API key not configured" },
         { status: 500 }
       );
     }
 
     if (action === "history") {
-      const historyCacheKey = `stock:${symbol}:history`;
+      const timeRange = searchParams.get("timeRange") || "3M";
+      const { resolution, from, to } = mapTimeRangeToFinnhub(timeRange);
+      const historyCacheKey = `stock:${symbol}:history:${timeRange}`;
       const cached = await cache.get<unknown[]>(historyCacheKey);
 
       if (cached) {
         return NextResponse.json({ symbol, data: cached, cached: true });
       }
 
-      const history = await getStockHistory(symbol, apiKey);
+      const candles = await getStockCandles(symbol, apiKey, resolution, from, to);
+      const history = candles.map((c) => ({
+        time: new Date(c.time * 1000).toISOString().split("T")[0],
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+        volume: c.volume,
+      }));
       await cache.set(historyCacheKey, history, CACHE_TTL.MARKET);
 
       return NextResponse.json({ symbol, data: history });
@@ -88,10 +98,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ symbol, ...cached, type: "STOCK", cached: true });
     }
 
-    const quote = await getStockQuote(symbol, apiKey);
-    await cache.set(quoteCacheKey, quote, CACHE_TTL.PRICE);
+    const quote = await getQuote(symbol, apiKey);
+    const quoteData = {
+      symbol: quote.symbol,
+      price: quote.price,
+      change: quote.change,
+      changePercent: quote.changePercent,
+      open: quote.open,
+      high: quote.high,
+      low: quote.low,
+      previousClose: quote.previousClose,
+    };
+    await cache.set(quoteCacheKey, quoteData, CACHE_TTL.PRICE);
 
-    return NextResponse.json({ symbol, ...quote, type: "STOCK" });
+    return NextResponse.json({ symbol, ...quoteData, type: "STOCK" });
   } catch (error) {
     console.error("Market API error:", error);
     return NextResponse.json(

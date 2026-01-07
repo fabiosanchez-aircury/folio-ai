@@ -30,10 +30,11 @@ const ChartService = {
    */
   getChartData: async (
     symbol: string,
-    timeRange: TimeRange = "3M"
+    timeRange: TimeRange = "3M",
+    type: "CRYPTO" | "STOCK" = "CRYPTO"
   ): Promise<ChartResponse> => {
     const response = await api.get<ChartResponse>("/charts", {
-      params: { symbol, timeRange },
+      params: { symbol, timeRange, type },
     });
     return response.data;
   },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCoinsPrice, getCoinsMarkets, symbolToCoinGeckoId, SYMBOL_TO_COINGECKO_ID } from "@/lib/api/coingecko";
-import { getStockQuote } from "@/lib/api/alphavantage";
+import { getQuote } from "@/lib/api/finnhub";
 import { cache, CACHE_TTL } from "@/lib/redis";
 
 export async function GET(request: NextRequest) {
@@ -120,10 +120,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ prices });
     }
 
-    // Stock prices via Alpha Vantage
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
+    // Stock prices via Finnhub
+    const apiKey = process.env.FINNHUB_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "Alpha Vantage API key not configured" }, { status: 500 });
+      return NextResponse.json({ error: "Finnhub API key not configured" }, { status: 500 });
     }
 
     const prices = await Promise.all(
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
 
         if (!quote) {
           try {
-            const stockQuote = await getStockQuote(symbol, apiKey);
+            const stockQuote = await getQuote(symbol, apiKey);
             quote = {
               price: stockQuote.price,
               change: stockQuote.change,

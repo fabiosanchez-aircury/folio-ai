@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import { getBinanceKlines, get24hChange } from "@/lib/api/binance";
+import { getStockCandles, getQuote, mapTimeRangeToFinnhub } from "@/lib/api/finnhub";
 
 // Popular crypto symbols for quick validation
 const CRYPTO_SYMBOLS = new Set([
   "BTC", "ETH", "BNB", "XRP", "ADA", "DOGE", "SOL", "DOT", "MATIC", "LINK",
   "LTC", "AVAX", "ATOM", "UNI", "XLM", "ALGO", "VET", "FIL", "TRX", "ETC",
   "NEAR", "APT", "ARB", "OP", "INJ", "SUI", "SEI", "PEPE", "SHIB", "BONK"
+]);
+
+// Popular stock symbols
+const STOCK_SYMBOLS = new Set([
+  "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK.B", "V", "JNJ",
+  "WMT", "JPM", "MA", "PG", "UNH", "DIS", "HD", "PYPL", "BAC", "NFLX"
 ]);
 
 // Map time range to Binance interval and limit
@@ -28,14 +35,16 @@ function getIntervalConfig(timeRange: string): { interval: string; limit: number
   }
 }
 
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const symbol = searchParams.get("symbol")?.toUpperCase() || "BTC";
   const timeRange = searchParams.get("timeRange") || "3M";
+  const assetType = searchParams.get("type")?.toUpperCase() || "CRYPTO";
 
   try {
     // Check if it's a crypto symbol
-    const isCrypto = CRYPTO_SYMBOLS.has(symbol) || symbol.length <= 5;
+    const isCrypto = assetType === "CRYPTO" || CRYPTO_SYMBOLS.has(symbol) || (symbol.length <= 5 && !STOCK_SYMBOLS.has(symbol));
 
     if (isCrypto) {
       const { interval, limit } = getIntervalConfig(timeRange);
@@ -67,15 +76,51 @@ export async function GET(request: Request) {
       });
     }
 
-    // For stocks, we would use Alpha Vantage, but it has strict rate limits
-    // Return an error suggesting to use crypto for now
-    return NextResponse.json(
-      { 
-        error: "Stock data requires API key configuration",
-        message: "Add ALPHA_VANTAGE_API_KEY to environment variables for stock data" 
+    // For stocks, use Finnhub
+    const apiKey = process.env.FINNHUB_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { 
+          error: "Stock data requires API key configuration",
+          message: "Add FINNHUB_API_KEY to environment variables for stock data" 
+        },
+        { status: 400 }
+      );
+    }
+
+    const { resolution, from, to } = mapTimeRangeToFinnhub(timeRange);
+    
+    // Fetch stock candles and quote in parallel
+    const [candles, quote] = await Promise.all([
+      getStockCandles(symbol, apiKey, resolution, from, to),
+      getQuote(symbol, apiKey).catch(() => null), // Quote is optional, don't fail if it errors
+    ]);
+
+    // Convert to chart format (time already in seconds timestamp)
+    const formattedData = candles.map((c) => ({
+      time: c.time,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+    }));
+
+    return NextResponse.json({
+      symbol,
+      type: "STOCK",
+      data: formattedData,
+      ticker: quote ? {
+        price: quote.price,
+        change: quote.change,
+        changePercent: quote.changePercent,
+      } : {
+        price: formattedData[formattedData.length - 1]?.close || 0,
+        change: 0,
+        changePercent: 0,
       },
-      { status: 400 }
-    );
+    });
 
   } catch (error) {
     console.error("Chart API error:", error);

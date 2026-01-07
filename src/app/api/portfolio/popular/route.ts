@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCoinsMarkets } from "@/lib/api/coingecko";
-import { searchSymbol } from "@/lib/api/alphavantage";
+import { getCompanyProfile } from "@/lib/api/finnhub";
 import { cache, CACHE_TTL } from "@/lib/redis";
 
 // Popular cryptos (CoinGecko IDs)
@@ -67,9 +67,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Stocks
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
+    const apiKey = process.env.FINNHUB_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "Alpha Vantage API key not configured" }, { status: 500 });
+      return NextResponse.json({ error: "Finnhub API key not configured" }, { status: 500 });
     }
 
     const cacheKey = "portfolio:popular:stocks";
@@ -81,25 +81,25 @@ export async function GET(request: NextRequest) {
     }>>(cacheKey);
 
     if (!results) {
-      // Search for each stock symbol
+      // Get company profile for each popular stock to get names
       const stockResults = await Promise.all(
         POPULAR_STOCK_SYMBOLS.map(async (symbol) => {
           try {
-            const searchResult = await searchSymbol(symbol, apiKey);
-            const stock = searchResult.find(
-              (s) => s.symbol === symbol && (s.type === "Equity" || s.type === "Common Stock")
-            );
-            if (stock) {
-              return {
-                id: stock.symbol,
-                symbol: stock.symbol,
-                name: stock.name,
-                type: "STOCK" as const,
-              };
-            }
-            return null;
+            const company = await getCompanyProfile(symbol, apiKey);
+            return {
+              id: symbol,
+              symbol: symbol,
+              name: company.name,
+              type: "STOCK" as const,
+            };
           } catch {
-            return null;
+            // Fallback to symbol if company profile fails
+            return {
+              id: symbol,
+              symbol: symbol,
+              name: symbol,
+              type: "STOCK" as const,
+            };
           }
         })
       );
