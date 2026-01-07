@@ -3,6 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { Trash2, Plus } from "lucide-react";
 import { deleteOrder, getOrders } from "@/lib/actions/orders";
@@ -18,6 +28,8 @@ export function OrderList({ portfolioId }: OrderListProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingOrder, setIsAddingOrder] = useState(false);
+  const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -35,15 +47,19 @@ export function OrderList({ portfolioId }: OrderListProps) {
     fetchOrders();
   }, [portfolioId]);
 
-  const handleDelete = async (orderId: string) => {
-    if (confirm("Are you sure you want to delete this order?")) {
-      try {
-        await deleteOrder(orderId);
-        router.refresh();
-        await fetchOrders();
-      } catch (error) {
-        console.error("Failed to delete order:", error);
-      }
+  const handleDelete = async () => {
+    if (!deleteOrderId) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteOrder(deleteOrderId);
+      router.refresh();
+      await fetchOrders();
+    } catch (error) {
+      console.error("Failed to delete order:", error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteOrderId(null);
     }
   };
 
@@ -138,7 +154,7 @@ export function OrderList({ portfolioId }: OrderListProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDelete(order.id)}
+                      onClick={() => setDeleteOrderId(order.id)}
                       className="text-destructive hover:text-destructive h-8 w-8"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -161,6 +177,27 @@ export function OrderList({ portfolioId }: OrderListProps) {
           }}
         />
       )}
+
+      <AlertDialog open={!!deleteOrderId} onOpenChange={(open) => !open && setDeleteOrderId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this order? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

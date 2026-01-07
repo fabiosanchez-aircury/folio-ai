@@ -216,11 +216,12 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="grid grid-cols-4 gap-4 text-sm font-medium text-muted-foreground px-2 pb-2 border-b border-border">
+                      <div className="grid grid-cols-6 gap-4 text-sm font-medium text-muted-foreground px-2 pb-2 border-b border-border">
                         <div>Symbol</div>
                         <div>Type</div>
                         <div className="text-right">Quantity</div>
                         <div className="text-right">Current</div>
+                        <div className="text-right">Actions</div>
                       </div>
                       {portfolio.assets.map((asset) => {
                         const liveAsset = liveData?.assets.find((a) => a.id === asset.id);
@@ -230,6 +231,7 @@ export function PortfolioList({ portfolios: initialPortfolios }: PortfolioListPr
                             asset={asset}
                             liveData={liveAsset}
                             isLoading={isLoading}
+                            onUpdate={fetchValues}
                           />
                         );
                       })}
