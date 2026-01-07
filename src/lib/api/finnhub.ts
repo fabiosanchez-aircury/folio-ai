@@ -70,46 +70,87 @@ export async function getCompanyNews(
 }
 
 export async function getPortfolioNews(
-  symbols: string[],
+  stockSymbols: string[],
+  cryptoSymbols: string[],
   apiKey: string,
   from?: string,
   to?: string
 ) {
-  if (symbols.length === 0) {
-    return [];
-  }
-
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   const fromDate = from || weekAgo.toISOString().split("T")[0];
   const toDate = to || now.toISOString().split("T")[0];
 
-  // Fetch news for all symbols in parallel
-  const newsPromises = symbols.map((symbol) =>
-    finnhubClient
-      .get<FinnhubNews[]>("/company-news", {
-        params: {
-          symbol,
-          from: fromDate,
-          to: toDate,
-          token: apiKey,
-        },
-      })
-      .catch((error) => {
-        console.error(`Error fetching news for ${symbol}:`, error);
-        return { data: [] };
-      })
-  );
+  const newsPromises: Promise<{ data: FinnhubNews[] }>[] = [];
+
+  // Fetch stock news for each symbol
+  stockSymbols.forEach((symbol) => {
+    newsPromises.push(
+      finnhubClient
+        .get<FinnhubNews[]>("/company-news", {
+          params: {
+            symbol,
+            from: fromDate,
+            to: toDate,
+            token: apiKey,
+          },
+        })
+        .catch((error) => {
+          console.error(`Error fetching news for stock ${symbol}:`, error);
+          return { data: [] };
+        })
+    );
+  });
+
+  // Fetch crypto market news if there are crypto symbols
+  if (cryptoSymbols.length > 0) {
+    newsPromises.push(
+      finnhubClient
+        .get<FinnhubNews[]>("/news", {
+          params: {
+            category: "crypto",
+            token: apiKey,
+          },
+        })
+        .catch((error) => {
+          console.error(`Error fetching crypto news:`, error);
+          return { data: [] };
+        })
+    );
+  }
 
   const responses = await Promise.all(newsPromises);
 
   // Combine all news articles
   const allNews = responses.flatMap((response) => response.data);
 
+  // Filter crypto news to only include articles related to our crypto symbols
+  const filteredNews = allNews.filter((news) => {
+    // For stock news, include all (already filtered by symbol)
+    if (
+      stockSymbols.length > 0 &&
+      stockSymbols.some((s) => news.related.includes(s))
+    ) {
+      return true;
+    }
+
+    // For crypto news, filter by related symbols
+    if (cryptoSymbols.length > 0) {
+      const relatedSymbols = news.related
+        .split(",")
+        .map((s) => s.trim().toUpperCase());
+      return cryptoSymbols.some((crypto) =>
+        relatedSymbols.includes(crypto.toUpperCase())
+      );
+    }
+
+    return false;
+  });
+
   // Remove duplicates based on news ID and sort by date (newest first)
   const uniqueNews = Array.from(
-    new Map(allNews.map((news) => [news.id, news])).values()
+    new Map(filteredNews.map((news) => [news.id, news])).values()
   ).sort((a, b) => b.datetime - a.datetime);
 
   return uniqueNews.map((news) => ({

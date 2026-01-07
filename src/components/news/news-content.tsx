@@ -33,7 +33,7 @@ interface Portfolio {
 }
 
 interface NewsContentProps {
-  userSymbols: string[];
+  userSymbols: Array<{ symbol: string; type: string }>;
   portfolios: Portfolio[];
   defaultPortfolioId: string | null;
 }
@@ -58,6 +58,7 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
   const [error, setError] = useState("");
   const [searchSymbol, setSearchSymbol] = useState("");
   const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
+  const [activeSymbolType, setActiveSymbolType] = useState<string | null>(null);
   const [activePortfolioId, setActivePortfolioId] = useState<string | null>(defaultPortfolioId);
   const [timeFilter, setTimeFilter] = useState("week");
   const [category, setCategory] = useState("general");
@@ -68,7 +69,7 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
 
     try {
       const params: Record<string, string> = {};
-      
+
       if (portfolioId) {
         params.portfolioId = portfolioId;
 
@@ -94,6 +95,9 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
         params.to = new Date().toISOString().split("T")[0];
       } else if (symbol) {
         params.symbol = symbol;
+        if (activeSymbolType) {
+          params.symbolType = activeSymbolType;
+        }
 
         // Calculate date range based on time filter
         const now = new Date();
@@ -140,14 +144,15 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
   const handlePortfolioSelect = async (portfolioId: string | null) => {
     setActivePortfolioId(portfolioId);
     setActiveSymbol(null);
-    
+    setActiveSymbolType(null);
+
     // Save as default preference
     if (portfolioId) {
       await updateDefaultNewsPortfolio(portfolioId);
     } else {
       await updateDefaultNewsPortfolio(null);
     }
-    
+
     router.refresh();
     fetchNews(undefined, portfolioId);
   };
@@ -166,7 +171,11 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchSymbol.trim()) {
-      setActiveSymbol(searchSymbol.toUpperCase());
+      const symbolUpper = searchSymbol.toUpperCase();
+      // Try to find the symbol type from userSymbols
+      const symbolData = userSymbols.find((s) => s.symbol === symbolUpper);
+      setActiveSymbol(symbolUpper);
+      setActiveSymbolType(symbolData?.type || null);
       setActivePortfolioId(null);
       setSearchSymbol("");
     }
@@ -199,6 +208,8 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
               </Button>
               {portfolios.map((portfolio) => {
                 const stockCount = portfolio.assets.filter((a) => a.type === "STOCK").length;
+                const cryptoCount = portfolio.assets.filter((a) => a.type === "CRYPTO").length;
+                const totalCount = stockCount + cryptoCount;
                 return (
                   <Button
                     key={portfolio.id}
@@ -207,22 +218,33 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
                     onClick={() => handlePortfolioSelect(portfolio.id)}
                   >
                     {portfolio.name}
-                    {stockCount > 0 && (
-                      <span className="ml-2 text-xs opacity-70">({stockCount})</span>
+                    {totalCount > 0 && (
+                      <span className="ml-2 text-xs opacity-70">
+                        ({stockCount > 0 ? `${stockCount}S` : ""}{stockCount > 0 && cryptoCount > 0 ? "/" : ""}{cryptoCount > 0 ? `${cryptoCount}C` : ""})
+                      </span>
                     )}
                   </Button>
                 );
               })}
             </div>
-            {selectedPortfolio && portfolioStockSymbols.length > 0 && (
-              <p className="text-sm text-muted-foreground mt-3">
-                Showing news for: {portfolioStockSymbols.join(", ")}
-              </p>
-            )}
-            {selectedPortfolio && portfolioStockSymbols.length === 0 && (
-              <p className="text-sm text-muted-foreground mt-3">
-                This portfolio has no stock assets. Add stocks to see related news.
-              </p>
+            {selectedPortfolio && (
+              <>
+                {portfolioStockSymbols.length > 0 && (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Stocks: {portfolioStockSymbols.join(", ")}
+                  </p>
+                )}
+                {selectedPortfolio.assets.filter((a) => a.type === "CRYPTO").length > 0 && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Crypto: {selectedPortfolio.assets.filter((a) => a.type === "CRYPTO").map((a) => a.symbol).join(", ")}
+                  </p>
+                )}
+                {portfolioStockSymbols.length === 0 && selectedPortfolio.assets.filter((a) => a.type === "CRYPTO").length === 0 && (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    This portfolio has no assets. Add stocks or crypto to see related news.
+                  </p>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -285,18 +307,25 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
           <Button
             variant={!activeSymbol ? "secondary" : "outline"}
             size="sm"
-            onClick={() => setActiveSymbol(null)}
+            onClick={() => {
+              setActiveSymbol(null);
+              setActiveSymbolType(null);
+            }}
           >
             All News
           </Button>
-          {userSymbols.map((symbol) => (
+          {userSymbols.map((symbolData) => (
             <Button
-              key={symbol}
-              variant={activeSymbol === symbol ? "secondary" : "outline"}
+              key={symbolData.symbol}
+              variant={activeSymbol === symbolData.symbol ? "secondary" : "outline"}
               size="sm"
-              onClick={() => setActiveSymbol(symbol)}
+              onClick={() => {
+                setActiveSymbol(symbolData.symbol);
+                setActiveSymbolType(symbolData.type);
+                setActivePortfolioId(null);
+              }}
             >
-              {symbol}
+              {symbolData.symbol}
             </Button>
           ))}
         </div>
@@ -314,6 +343,7 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
             size="sm"
             onClick={() => {
               setActiveSymbol(null);
+              setActiveSymbolType(null);
               if (activePortfolioId) {
                 fetchNews(undefined, activePortfolioId);
               } else {

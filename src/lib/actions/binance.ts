@@ -148,7 +148,7 @@ export async function syncBinancePortfolio() {
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/news");
 
   return { success: true, assetsCount: balances.length };
 }
-

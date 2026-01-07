@@ -25,7 +25,10 @@ async function getSession() {
 }
 
 // Portfolio actions
-export async function createPortfolio(data: { name: string; description?: string }) {
+export async function createPortfolio(data: {
+  name: string;
+  description?: string;
+}) {
   const session = await getSession();
   const validated = portfolioSchema.parse(data);
 
@@ -38,10 +41,14 @@ export async function createPortfolio(data: { name: string; description?: string
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/news");
   return portfolio;
 }
 
-export async function updatePortfolio(id: string, data: { name: string; description?: string }) {
+export async function updatePortfolio(
+  id: string,
+  data: { name: string; description?: string }
+) {
   const session = await getSession();
   const validated = portfolioSchema.parse(data);
 
@@ -58,6 +65,7 @@ export async function updatePortfolio(id: string, data: { name: string; descript
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/news");
   return updated;
 }
 
@@ -74,6 +82,7 @@ export async function deletePortfolio(id: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/news");
 }
 
 export async function getPortfolios() {
@@ -123,6 +132,7 @@ export async function addAsset(data: z.infer<typeof assetSchema>) {
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolio");
+    revalidatePath("/dashboard/news");
     return updated;
   }
 
@@ -135,6 +145,7 @@ export async function addAsset(data: z.infer<typeof assetSchema>) {
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/news");
   return asset;
 }
 
@@ -163,6 +174,7 @@ export async function updateAsset(
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/news");
   return updated;
 }
 
@@ -182,5 +194,5 @@ export async function deleteAsset(id: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/portfolio");
+  revalidatePath("/dashboard/news");
 }
-

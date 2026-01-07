@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCompanyNews, getMarketNews, getPortfolioNews } from "@/lib/api/finnhub";
+import {
+  getCompanyNews,
+  getMarketNews,
+  getPortfolioNews,
+} from "@/lib/api/finnhub";
 import { cache, cacheKey, CACHE_TTL } from "@/lib/redis";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -46,10 +50,13 @@ export async function GET(request: NextRequest) {
       });
 
       if (!portfolio) {
-        return NextResponse.json({ error: "Portfolio not found" }, { status: 404 });
+        return NextResponse.json(
+          { error: "Portfolio not found" },
+          { status: 404 }
+        );
       }
 
-      // Get unique stock symbols (only stocks for news)
+      // Get unique stock and crypto symbols
       const stockSymbols = Array.from(
         new Set(
           portfolio.assets
@@ -58,12 +65,22 @@ export async function GET(request: NextRequest) {
         )
       );
 
-      if (stockSymbols.length === 0) {
+      const cryptoSymbols = Array.from(
+        new Set(
+          portfolio.assets
+            .filter((asset) => asset.type === "CRYPTO")
+            .map((asset) => asset.symbol)
+        )
+      );
+
+      if (stockSymbols.length === 0 && cryptoSymbols.length === 0) {
         return NextResponse.json({ portfolioId, news: [] });
       }
 
       // Check cache first
-      const cacheKeyStr = `news:portfolio:${portfolioId}:${stockSymbols.sort().join(",")}`;
+      const cacheKeyStr = `news:portfolio:${portfolioId}:${stockSymbols
+        .sort()
+        .join(",")}:${cryptoSymbols.sort().join(",")}`;
       const cached = await cache.get<unknown[]>(cacheKeyStr);
 
       if (cached) {
@@ -72,6 +89,7 @@ export async function GET(request: NextRequest) {
 
       const news = await getPortfolioNews(
         stockSymbols,
+        cryptoSymbols,
         apiKey,
         from || undefined,
         to || undefined
@@ -85,6 +103,8 @@ export async function GET(request: NextRequest) {
 
     // Single symbol news
     if (symbol) {
+      const symbolType = searchParams.get("symbolType"); // "STOCK" or "CRYPTO"
+
       // Check cache first
       const cacheKeyStr = cacheKey.news(symbol);
       const cached = await cache.get<unknown[]>(cacheKeyStr);
@@ -93,12 +113,25 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ symbol, news: cached, cached: true });
       }
 
-      const news = await getCompanyNews(
-        symbol,
-        apiKey,
-        from || undefined,
-        to || undefined
-      );
+      let news;
+
+      if (symbolType === "CRYPTO") {
+        // For crypto, get market news and filter by symbol
+        const cryptoNews = await getMarketNews(apiKey, "crypto");
+        const relatedSymbols = symbol.toUpperCase();
+        news = cryptoNews.filter((article) => {
+          const articleSymbols = article.symbols.map((s) => s.toUpperCase());
+          return articleSymbols.includes(relatedSymbols);
+        });
+      } else {
+        // For stocks, use company news
+        news = await getCompanyNews(
+          symbol,
+          apiKey,
+          from || undefined,
+          to || undefined
+        );
+      }
 
       // Cache the result
       await cache.set(cacheKeyStr, news, CACHE_TTL.NEWS);
@@ -121,7 +154,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("News API error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch news" },
+      {
+        error: error instanceof Error ? error.message : "Failed to fetch news",
+      },
       { status: 500 }
     );
   }
