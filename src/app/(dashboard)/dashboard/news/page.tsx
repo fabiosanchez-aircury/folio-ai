@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { getUserSymbols } from "@/lib/queries";
+import { getUserSymbols, getUserPortfolios, getUserDefaultNewsPortfolio } from "@/lib/queries";
 import { NewsContent } from "@/components/news/news-content";
 
 export default async function NewsPage() {
@@ -7,7 +7,11 @@ export default async function NewsPage() {
 
   if (!session?.user) return null;
 
-  const userSymbols = await getUserSymbols(session.user.id);
+  const [userSymbols, portfolios, defaultPortfolio] = await Promise.all([
+    getUserSymbols(session.user.id),
+    getUserPortfolios(session.user.id),
+    getUserDefaultNewsPortfolio(session.user.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -18,7 +22,11 @@ export default async function NewsPage() {
         </p>
       </div>
 
-      <NewsContent userSymbols={userSymbols} />
+      <NewsContent
+        userSymbols={userSymbols}
+        portfolios={portfolios}
+        defaultPortfolioId={defaultPortfolio?.id || null}
+      />
     </div>
   );
 }

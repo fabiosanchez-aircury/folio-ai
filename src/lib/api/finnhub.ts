@@ -69,6 +69,62 @@ export async function getCompanyNews(
   }));
 }
 
+export async function getPortfolioNews(
+  symbols: string[],
+  apiKey: string,
+  from?: string,
+  to?: string
+) {
+  if (symbols.length === 0) {
+    return [];
+  }
+
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const fromDate = from || weekAgo.toISOString().split("T")[0];
+  const toDate = to || now.toISOString().split("T")[0];
+
+  // Fetch news for all symbols in parallel
+  const newsPromises = symbols.map((symbol) =>
+    finnhubClient
+      .get<FinnhubNews[]>("/company-news", {
+        params: {
+          symbol,
+          from: fromDate,
+          to: toDate,
+          token: apiKey,
+        },
+      })
+      .catch((error) => {
+        console.error(`Error fetching news for ${symbol}:`, error);
+        return { data: [] };
+      })
+  );
+
+  const responses = await Promise.all(newsPromises);
+
+  // Combine all news articles
+  const allNews = responses.flatMap((response) => response.data);
+
+  // Remove duplicates based on news ID and sort by date (newest first)
+  const uniqueNews = Array.from(
+    new Map(allNews.map((news) => [news.id, news])).values()
+  ).sort((a, b) => b.datetime - a.datetime);
+
+  return uniqueNews.map((news) => ({
+    id: String(news.id),
+    title: news.headline,
+    summary: news.summary,
+    source: news.source,
+    url: news.url,
+    imageUrl: news.image,
+    publishedAt: new Date(news.datetime * 1000),
+    symbols: news.related.split(",").filter(Boolean),
+    category: news.category,
+  }));
+}
+
 export async function getMarketNews(
   apiKey: string,
   category: string = "general"

@@ -23,6 +23,55 @@ export async function getUserSymbols(userId: string) {
   return Array.from(symbols);
 }
 
+export async function getUserPortfolios(userId: string) {
+  return prisma.portfolio.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      assets: {
+        select: {
+          symbol: true,
+          type: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getUserDefaultNewsPortfolio(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      defaultNewsPortfolioId: true,
+    },
+  });
+
+  if (!user?.defaultNewsPortfolioId) {
+    return null;
+  }
+
+  return prisma.portfolio.findFirst({
+    where: {
+      id: user.defaultNewsPortfolioId,
+      userId,
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      assets: {
+        select: {
+          symbol: true,
+          type: true,
+        },
+      },
+    },
+  });
+}
+
 export async function getUserAssetSymbols(userId: string) {
   const portfolios = await prisma.portfolio.findMany({
     where: { userId },

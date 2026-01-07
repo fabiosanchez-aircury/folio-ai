@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDateTime } from "@/lib/utils";
-import { Search, ExternalLink, Newspaper, Loader2, Clock } from "lucide-react";
+import { Search, ExternalLink, Newspaper, Loader2, Clock, Briefcase } from "lucide-react";
 import api from "@/services/api";
+import { updateDefaultNewsPortfolio } from "@/lib/actions/news";
+import { useRouter } from "next/navigation";
 
 interface NewsArticle {
   id: string;
@@ -20,8 +22,20 @@ interface NewsArticle {
   category: string;
 }
 
+interface Portfolio {
+  id: string;
+  name: string;
+  description: string | null;
+  assets: Array<{
+    symbol: string;
+    type: string;
+  }>;
+}
+
 interface NewsContentProps {
   userSymbols: string[];
+  portfolios: Portfolio[];
+  defaultPortfolioId: string | null;
 }
 
 const timeFilters = [
@@ -37,22 +51,48 @@ const categories = [
   { label: "Merger", value: "merger" },
 ];
 
-export function NewsContent({ userSymbols }: NewsContentProps) {
+export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: NewsContentProps) {
+  const router = useRouter();
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchSymbol, setSearchSymbol] = useState("");
   const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
+  const [activePortfolioId, setActivePortfolioId] = useState<string | null>(defaultPortfolioId);
   const [timeFilter, setTimeFilter] = useState("week");
   const [category, setCategory] = useState("general");
 
-  const fetchNews = async (symbol?: string) => {
+  const fetchNews = async (symbol?: string, portfolioId?: string | null) => {
     setIsLoading(true);
     setError("");
 
     try {
       const params: Record<string, string> = {};
-      if (symbol) {
+      
+      if (portfolioId) {
+        params.portfolioId = portfolioId;
+
+        // Calculate date range based on time filter
+        const now = new Date();
+        let from: Date;
+
+        switch (timeFilter) {
+          case "today":
+            from = new Date(now.setHours(0, 0, 0, 0));
+            break;
+          case "week":
+            from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case "month":
+            from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          default:
+            from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        }
+
+        params.from = from.toISOString().split("T")[0];
+        params.to = new Date().toISOString().split("T")[0];
+      } else if (symbol) {
         params.symbol = symbol;
 
         // Calculate date range based on time filter
@@ -97,25 +137,97 @@ export function NewsContent({ userSymbols }: NewsContentProps) {
     }
   };
 
+  const handlePortfolioSelect = async (portfolioId: string | null) => {
+    setActivePortfolioId(portfolioId);
+    setActiveSymbol(null);
+    
+    // Save as default preference
+    if (portfolioId) {
+      await updateDefaultNewsPortfolio(portfolioId);
+    } else {
+      await updateDefaultNewsPortfolio(null);
+    }
+    
+    router.refresh();
+    fetchNews(undefined, portfolioId);
+  };
+
   useEffect(() => {
     if (activeSymbol) {
-      fetchNews(activeSymbol);
+      fetchNews(activeSymbol, null);
+    } else if (activePortfolioId) {
+      fetchNews(undefined, activePortfolioId);
     } else {
       fetchNews();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSymbol, timeFilter, category]);
+  }, [activeSymbol, activePortfolioId, timeFilter, category]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchSymbol.trim()) {
       setActiveSymbol(searchSymbol.toUpperCase());
+      setActivePortfolioId(null);
       setSearchSymbol("");
     }
   };
 
+  const selectedPortfolio = portfolios.find((p) => p.id === activePortfolioId);
+  const portfolioStockSymbols = selectedPortfolio
+    ? selectedPortfolio.assets.filter((a) => a.type === "STOCK").map((a) => a.symbol)
+    : [];
+
   return (
     <div className="space-y-6">
+      {/* Portfolio Selector */}
+      {portfolios.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Portfolio News
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={activePortfolioId === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePortfolioSelect(null)}
+              >
+                All News
+              </Button>
+              {portfolios.map((portfolio) => {
+                const stockCount = portfolio.assets.filter((a) => a.type === "STOCK").length;
+                return (
+                  <Button
+                    key={portfolio.id}
+                    variant={activePortfolioId === portfolio.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePortfolioSelect(portfolio.id)}
+                  >
+                    {portfolio.name}
+                    {stockCount > 0 && (
+                      <span className="ml-2 text-xs opacity-70">({stockCount})</span>
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
+            {selectedPortfolio && portfolioStockSymbols.length > 0 && (
+              <p className="text-sm text-muted-foreground mt-3">
+                Showing news for: {portfolioStockSymbols.join(", ")}
+              </p>
+            )}
+            {selectedPortfolio && portfolioStockSymbols.length === 0 && (
+              <p className="text-sm text-muted-foreground mt-3">
+                This portfolio has no stock assets. Add stocks to see related news.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Search and Filters */}
       <div className="flex flex-col lg:flex-row gap-4">
         <form onSubmit={handleSearch} className="flex gap-2 flex-1 max-w-md">
@@ -146,8 +258,8 @@ export function NewsContent({ userSymbols }: NewsContentProps) {
             ))}
           </div>
 
-          {/* Category Filters (only when not searching specific symbol) */}
-          {!activeSymbol && (
+          {/* Category Filters (only when not searching specific symbol or portfolio) */}
+          {!activeSymbol && !activePortfolioId && (
             <div className="flex gap-1">
               {categories.map((cat) => (
                 <Button
@@ -200,7 +312,14 @@ export function NewsContent({ userSymbols }: NewsContentProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setActiveSymbol(null)}
+            onClick={() => {
+              setActiveSymbol(null);
+              if (activePortfolioId) {
+                fetchNews(undefined, activePortfolioId);
+              } else {
+                fetchNews();
+              }
+            }}
           >
             Clear
           </Button>
