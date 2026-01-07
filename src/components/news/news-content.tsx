@@ -38,12 +38,6 @@ interface NewsContentProps {
   defaultPortfolioId: string | null;
 }
 
-const timeFilters = [
-  { label: "Today", value: "today" },
-  { label: "This Week", value: "week" },
-  { label: "This Month", value: "month" },
-];
-
 const categories = [
   { label: "General", value: "general" },
   { label: "Forex", value: "forex" },
@@ -60,7 +54,6 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
   const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
   const [activeSymbolType, setActiveSymbolType] = useState<string | null>(null);
   const [activePortfolioId, setActivePortfolioId] = useState<string | null>(defaultPortfolioId);
-  const [timeFilter, setTimeFilter] = useState("week");
   const [category, setCategory] = useState("general");
 
   const fetchNews = async (symbol?: string, portfolioId?: string | null) => {
@@ -72,53 +65,11 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
 
       if (portfolioId) {
         params.portfolioId = portfolioId;
-
-        // Calculate date range based on time filter
-        const now = new Date();
-        let from: Date;
-
-        switch (timeFilter) {
-          case "today":
-            from = new Date(now.setHours(0, 0, 0, 0));
-            break;
-          case "week":
-            from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case "month":
-            from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-          default:
-            from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        }
-
-        params.from = from.toISOString().split("T")[0];
-        params.to = new Date().toISOString().split("T")[0];
       } else if (symbol) {
         params.symbol = symbol;
         if (activeSymbolType) {
           params.symbolType = activeSymbolType;
         }
-
-        // Calculate date range based on time filter
-        const now = new Date();
-        let from: Date;
-
-        switch (timeFilter) {
-          case "today":
-            from = new Date(now.setHours(0, 0, 0, 0));
-            break;
-          case "week":
-            from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case "month":
-            from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-          default:
-            from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        }
-
-        params.from = from.toISOString().split("T")[0];
-        params.to = new Date().toISOString().split("T")[0];
       } else {
         params.category = category;
       }
@@ -166,7 +117,7 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
       fetchNews();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSymbol, activePortfolioId, timeFilter, category]);
+  }, [activeSymbol, activePortfolioId, category]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,20 +217,6 @@ export function NewsContent({ userSymbols, portfolios, defaultPortfolioId }: New
         </form>
 
         <div className="flex flex-wrap gap-2">
-          {/* Time Filters */}
-          <div className="flex gap-1">
-            {timeFilters.map((filter) => (
-              <Button
-                key={filter.value}
-                variant={timeFilter === filter.value ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setTimeFilter(filter.value)}
-              >
-                {filter.label}
-              </Button>
-            ))}
-          </div>
-
           {/* Category Filters (only when not searching specific symbol or portfolio) */}
           {!activeSymbol && !activePortfolioId && (
             <div className="flex gap-1">

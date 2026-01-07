@@ -77,10 +77,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ portfolioId, news: [] });
       }
 
-      // Check cache first
+      // Check cache first (include date range in cache key)
       const cacheKeyStr = `news:portfolio:${portfolioId}:${stockSymbols
         .sort()
-        .join(",")}:${cryptoSymbols.sort().join(",")}`;
+        .join(",")}:${cryptoSymbols.sort().join(",")}:${from || ""}:${
+        to || ""
+      }`;
       const cached = await cache.get<unknown[]>(cacheKeyStr);
 
       if (cached) {
@@ -105,8 +107,10 @@ export async function GET(request: NextRequest) {
     if (symbol) {
       const symbolType = searchParams.get("symbolType"); // "STOCK" or "CRYPTO"
 
-      // Check cache first
-      const cacheKeyStr = cacheKey.news(symbol);
+      // Check cache first (include date range and symbol type in cache key)
+      const cacheKeyStr = `${cacheKey.news(symbol)}:${from || ""}:${to || ""}:${
+        symbolType || ""
+      }`;
       const cached = await cache.get<unknown[]>(cacheKeyStr);
 
       if (cached) {
@@ -116,12 +120,23 @@ export async function GET(request: NextRequest) {
       let news;
 
       if (symbolType === "CRYPTO") {
-        // For crypto, get market news and filter by symbol
+        // For crypto, get market news and filter by symbol and date
         const cryptoNews = await getMarketNews(apiKey, "crypto");
         const relatedSymbols = symbol.toUpperCase();
+        const fromTimestamp = from ? new Date(from).getTime() : null;
+        const toTimestamp = to ? new Date(to).getTime() + 86400000 : null; // Add 1 day
+
         news = cryptoNews.filter((article) => {
+          // Filter by symbol
           const articleSymbols = article.symbols.map((s) => s.toUpperCase());
-          return articleSymbols.includes(relatedSymbols);
+          if (!articleSymbols.includes(relatedSymbols)) return false;
+
+          // Filter by date range
+          const articleDate = new Date(article.publishedAt).getTime();
+          if (fromTimestamp && articleDate < fromTimestamp) return false;
+          if (toTimestamp && articleDate > toTimestamp) return false;
+
+          return true;
         });
       } else {
         // For stocks, use company news
@@ -139,7 +154,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ symbol, news });
     }
 
-    // Market news with cache
+    // Market news with cache (no date filtering for general market news)
     const marketCacheKey = `news:market:${category}`;
     const cached = await cache.get<unknown[]>(marketCacheKey);
 

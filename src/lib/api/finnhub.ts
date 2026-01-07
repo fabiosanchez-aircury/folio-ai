@@ -104,6 +104,7 @@ export async function getPortfolioNews(
   });
 
   // Fetch crypto market news if there are crypto symbols
+  // Note: Finnhub crypto news API doesn't support date filtering, so we'll filter client-side
   if (cryptoSymbols.length > 0) {
     newsPromises.push(
       finnhubClient
@@ -122,35 +123,52 @@ export async function getPortfolioNews(
 
   const responses = await Promise.all(newsPromises);
 
-  // Combine all news articles
-  const allNews = responses.flatMap((response) => response.data);
+  // Separate stock news and crypto news
+  const stockNews: FinnhubNews[] = [];
+  const cryptoNews: FinnhubNews[] = [];
 
-  // Filter crypto news to only include articles related to our crypto symbols
-  const filteredNews = allNews.filter((news) => {
-    // For stock news, include all (already filtered by symbol)
-    if (
-      stockSymbols.length > 0 &&
-      stockSymbols.some((s) => news.related.includes(s))
-    ) {
-      return true;
+  // First N responses are stock news (one per stock symbol)
+  let responseIndex = 0;
+  for (let i = 0; i < stockSymbols.length; i++) {
+    if (responses[responseIndex]?.data) {
+      stockNews.push(...responses[responseIndex].data);
     }
+    responseIndex++;
+  }
 
-    // For crypto news, filter by related symbols
-    if (cryptoSymbols.length > 0) {
-      const relatedSymbols = news.related
-        .split(",")
-        .map((s) => s.trim().toUpperCase());
-      return cryptoSymbols.some((crypto) =>
-        relatedSymbols.includes(crypto.toUpperCase())
-      );
-    }
+  // Last response (if exists) is crypto market news
+  if (cryptoSymbols.length > 0 && responses[responseIndex]?.data) {
+    cryptoNews.push(...responses[responseIndex].data);
+  }
 
-    return false;
+  // Filter crypto news by date range and symbols
+  const fromTimestamp = fromDate ? new Date(fromDate).getTime() / 1000 : null;
+  const toTimestamp = toDate ? new Date(toDate).getTime() / 1000 + 86400 : null; // Add 1 day to include end date
+
+  const filteredCryptoNews = cryptoNews.filter((news) => {
+    // Filter by date range
+    if (fromTimestamp && news.datetime < fromTimestamp) return false;
+    if (toTimestamp && news.datetime > toTimestamp) return false;
+
+    // Filter by related symbols
+    if (cryptoSymbols.length === 0) return false;
+
+    const relatedSymbols = news.related
+      .split(",")
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean);
+
+    return cryptoSymbols.some((crypto) =>
+      relatedSymbols.includes(crypto.toUpperCase())
+    );
   });
+
+  // Combine stock news (already filtered by API date range) and filtered crypto news
+  const allNews = [...stockNews, ...filteredCryptoNews];
 
   // Remove duplicates based on news ID and sort by date (newest first)
   const uniqueNews = Array.from(
-    new Map(filteredNews.map((news) => [news.id, news])).values()
+    new Map(allNews.map((news) => [news.id, news])).values()
   ).sort((a, b) => b.datetime - a.datetime);
 
   return uniqueNews.map((news) => ({

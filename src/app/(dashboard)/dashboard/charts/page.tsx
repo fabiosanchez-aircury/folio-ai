@@ -121,7 +121,7 @@ export default function ChartsPage() {
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>A better API is needed to track stocks</p>
+            <p>Work in progress</p>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -292,7 +292,7 @@ export default function ChartsPage() {
       </div>
 
       <p className="text-sm text-muted-foreground text-center">
-        {assetType === "CRYPTO" 
+        {assetType === "CRYPTO"
           ? "Data provided by Binance • Auto-refreshes every 30 seconds"
           : "Data provided by Finnhub • Auto-refreshes every 30 seconds"}
       </p>
